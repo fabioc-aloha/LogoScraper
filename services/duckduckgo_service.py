@@ -2,7 +2,7 @@ import logging
 import requests
 from ratelimit import limits, sleep_and_retry
 
-FAVICON_RATE_LIMIT = 900  # 15 requests per second
+FAVICON_RATE_LIMIT = 1800  # 30 requests per second
 
 class DuckDuckGoService:
     def __init__(self, target_size):

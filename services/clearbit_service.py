@@ -2,7 +2,7 @@ import logging
 import requests
 from ratelimit import limits, sleep_and_retry
 
-CLEARBIT_RATE_LIMIT = 1800  # 30 requests per second
+CLEARBIT_RATE_LIMIT = 3600  # 60 requests per second
 
 class ClearbitService:
     def __init__(self, target_size):
