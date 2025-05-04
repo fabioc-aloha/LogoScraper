@@ -113,11 +113,27 @@ Required packages (install via `pip install -r requirements.txt`):
 ## Input File Format
 
 The script expects an Excel file named `Companies.xlsx` with the following columns:
-- `TPID`: Unique identifier for each company
-- `CompanyName`: Company name for fallback logo generation
-- `URL`: Primary website URL
-- `URL1`: Alternative website URL (optional)
-- `URL2`: Additional website URL (optional)
+
+Required Columns:
+- `TPID`: Unique identifier for each company. Used as the filename for the saved logo (e.g., "12345.png")
+- `TPAccountName`: Primary company name from the Trading Partner system
+- `CRMAccountName`: Alternative company name from the CRM system (fallback if TPAccountName is empty)
+- `WebsiteURL`: Primary website URL to search for the company logo
+- `WebsiteURLspm`: Secondary website URL (fallback if logo not found on primary URL)
+
+The script uses redundant data sources to improve success rates:
+
+Company Names:
+- `TPAccountName` is tried first as it's typically more accurate
+- If `TPAccountName` is empty or invalid, falls back to `CRMAccountName`
+- At least one company name is required for generating default logos if no logo is found online
+
+Website URLs:
+- `WebsiteURL` is checked first for logo extraction
+- If no logo is found or the URL is invalid, `WebsiteURLspm` is tried as a backup
+- If both URLs fail, the script will generate a default logo using the company name
+
+Note: When providing URLs, they don't need to include the protocol (http/https). The script will automatically handle URL normalization and cleanup.
 
 ## Usage
 
