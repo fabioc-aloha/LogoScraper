@@ -56,6 +56,7 @@ CONFIG = {
     'MIN_SOURCE_SIZE': 120,  # Minimum source image size to avoid excessive upscaling
     'BATCH_SIZE': 200,       # Number of companies to process in each batch
     'OUTPUT_FOLDER': 'logos',# Output folder for saved logos
+    'TEMP_FOLDER': 'temp',   # Temporary folder for logo validation
     'INPUT_FILE': 'Companies.xlsx',  # Input Excel file containing company data
     'CORNER_RADIUS': 40      # Corner radius for rounded rectangles in default logos
 }
@@ -66,6 +67,7 @@ You can modify these values in `config.py` to customize the behavior of the scri
 - `MIN_SOURCE_SIZE`: Sets the minimum acceptable source image dimensions (largest dimension must be at least this size)
 - `BATCH_SIZE`: Controls how many companies are processed in each batch
 - `OUTPUT_FOLDER`: Specifies where processed logos are saved
+- `TEMP_FOLDER`: Sets the directory for temporary files during logo validation
 - `INPUT_FILE`: Sets the name of the input Excel file
 - `CORNER_RADIUS`: Adjusts the corner roundness of generated default logos
 
@@ -82,6 +84,7 @@ You can modify these values in `config.py` to customize the behavior of the scri
 │   ├── image_utils.py      # Image processing functions
 │   └── progress_tracker.py # Progress tracking
 ├── logos/                  # Output directory for logos
+├── temp/                   # Temporary storage for logo validation
 ├── Companies.xlsx          # Input file with company data
 └── requirements.txt        # Python dependencies
 ```

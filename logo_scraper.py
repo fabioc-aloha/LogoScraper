@@ -12,8 +12,12 @@ from config import CONFIG
 class LogoScraper:
     def __init__(self, output_folder=CONFIG['OUTPUT_FOLDER'], batch_size=CONFIG['BATCH_SIZE']):
         self.output_folder = output_folder
+        self.temp_folder = os.path.join(os.path.dirname(output_folder), 'temp')
         self.batch_size = batch_size
+        
+        # Create output and temp directories
         os.makedirs(output_folder, exist_ok=True)
+        os.makedirs(self.temp_folder, exist_ok=True)
         
         # Initialize services with configuration
         self.duckduckgo = DuckDuckGoService(CONFIG['OUTPUT_SIZE'])
@@ -47,7 +51,7 @@ class LogoScraper:
         logo_data = None
         logo_source = None
         
-        # Try each URL
+        # Try each URL with both services
         for url in urls:
             if not url:
                 continue
@@ -61,23 +65,38 @@ class LogoScraper:
                 continue
             
             # Try Clearbit first
-            logo_data = self.clearbit.get_logo(domain)
-            if logo_data:
-                logo_source = "Clearbit"
-                break
-                
-            # Try DuckDuckGo as backup
-            logo_data = self.duckduckgo.get_logo(domain)
-            if logo_data:
-                logo_source = "DuckDuckGo"
-                break
+            temp_data = self.clearbit.get_logo(domain)
+            if temp_data:
+                # Try to save and validate the logo
+                temp_path = os.path.join(self.temp_folder, f"{tpid}_clearbit.png")
+                if save_standardized_logo(temp_data, temp_path):
+                    logo_data = temp_data
+                    logo_source = "Clearbit"
+                    os.remove(temp_path)
+                    break
+                elif os.path.exists(temp_path):
+                    os.remove(temp_path)
+                    
+            # Try DuckDuckGo if Clearbit failed or image was too small
+            if not logo_data:
+                temp_data = self.duckduckgo.get_logo(domain)
+                if temp_data:
+                    # Try to save and validate the logo
+                    temp_path = os.path.join(self.temp_folder, f"{tpid}_duckduckgo.png")
+                    if save_standardized_logo(temp_data, temp_path):
+                        logo_data = temp_data
+                        logo_source = "DuckDuckGo"
+                        os.remove(temp_path)
+                        break
+                    elif os.path.exists(temp_path):
+                        os.remove(temp_path)
 
-        # Create default logo if no logo found and company name exists
+        # Create default logo if no valid logo found and company name exists
         if not logo_data and company_name:
             logo_data = self.default.get_logo(company_name)
             logo_source = "Default"
 
-        # Save logo if found
+        # Save final logo if found
         if logo_data:
             output_path = os.path.join(self.output_folder, f"{tpid}.png")
             if save_standardized_logo(logo_data, output_path):
