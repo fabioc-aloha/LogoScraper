@@ -12,11 +12,12 @@ ENV/
 *.code-workspace
 
 # Project specific
-# logos/
 download_progress.json
 logo_scraper.log
-# Companies.xlsx
+temp/
+logos/
 
 # OS specific
 .DS_Store
 Thumbs.db
+/logos/Thumbs.db
