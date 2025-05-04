@@ -1,6 +1,13 @@
-requests==2.31.0
-pandas==2.1.4
-Pillow==10.1.0
-openpyxl==3.1.2  # Required for pandas to read Excel files
-urllib3==2.1.0    # Required by requests
-ratelimit==2.2.1  # For API rate limiting
+requests==2.31.0            # For HTTP requests
+pandas==2.1.4               # For data handling
+Pillow==10.1.0              # For image processing
+openpyxl==3.1.2             # Required for pandas to read Excel files
+urllib3==2.1.0              # Required by requests
+ratelimit==2.2.1            # For API rate limiting
+certifi>=2023.7.22          # For SSL certificate verification
+charset-normalizer~=3.3.2   # For character encoding detection
+idna>=3.4                   # For internationalized domain names
+python-dateutil>=2.8.2      # Required by pandas
+pytz>=2023.3.post1          # Required by pandas
+six>=1.16.0                 # Required by python-dateutil
+numpy>=1.24.3               # Required by pandas

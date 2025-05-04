@@ -6,8 +6,9 @@ A Python utility that automatically downloads company logos from various sources
 
 - Fetches logos from multiple sources in order of preference:
   1. Clearbit Logo API
-  2. DuckDuckGo Icons Service (fallback)
-  3. Default logo generation as final fallback
+  2. DuckDuckGo Icons Service (first fallback)
+  3. Website Favicon (second fallback)
+  4. Default logo generation (final fallback)
 
 - Image Processing:
   - Standardizes all logos to configured dimensions
@@ -52,24 +53,59 @@ All configuration settings are centralized in `config.py`. Here's the default co
 
 ```python
 CONFIG = {
-    'OUTPUT_SIZE': 512,      # Target size for logos (width and height in pixels)
+    # Output and Processing
+    'OUTPUT_SIZE': 512,      # Target size for logos
     'MIN_SOURCE_SIZE': 120,  # Minimum source image size to avoid excessive upscaling
     'BATCH_SIZE': 200,       # Number of companies to process in each batch
     'OUTPUT_FOLDER': 'logos',# Output folder for saved logos
     'TEMP_FOLDER': 'temp',   # Temporary folder for logo validation
     'INPUT_FILE': 'Companies.xlsx',  # Input Excel file containing company data
-    'CORNER_RADIUS': 40      # Corner radius for rounded rectangles in default logos
+    'CORNER_RADIUS': 40,     # Corner radius for rounded rectangles in default logos
+
+    # Service Rate Limits (requests per minute)
+    'CLEARBIT_RATE_LIMIT': 3600,  # 60 requests per second
+    'DUCKDUCKGO_RATE_LIMIT': 1800,  # 30 requests per second
+    'FAVICON_RATE_LIMIT': 1800,  # 30 requests per second
+
+    # HTTP Configuration
+    'REQUEST_TIMEOUT': 10,  # Timeout for HTTP requests in seconds
+    'USER_AGENT': '...',   # User agent string for HTTP requests
+
+    # Favicon Service Configuration
+    'FAVICON_MIN_SIZE': 32,  # Minimum size for favicons in pixels
+    'FAVICON_LOCATIONS': [   # Common favicon locations to check
+        '/favicon.ico',
+        '/favicon.png',
+        '/apple-touch-icon.png',
+        '/apple-touch-icon-precomposed.png'
+    ]
 }
 ```
 
 You can modify these values in `config.py` to customize the behavior of the script:
+
+Core Settings:
 - `OUTPUT_SIZE`: Determines the final dimensions of processed logos
-- `MIN_SOURCE_SIZE`: Sets the minimum acceptable source image dimensions (largest dimension must be at least this size)
+- `MIN_SOURCE_SIZE`: Sets the minimum acceptable source image dimensions
 - `BATCH_SIZE`: Controls how many companies are processed in each batch
 - `OUTPUT_FOLDER`: Specifies where processed logos are saved
 - `TEMP_FOLDER`: Sets the directory for temporary files during logo validation
 - `INPUT_FILE`: Sets the name of the input Excel file
 - `CORNER_RADIUS`: Adjusts the corner roundness of generated default logos
+
+Service Configuration:
+- Rate Limits (per minute):
+  - `CLEARBIT_RATE_LIMIT`: Rate limit for Clearbit API (60/sec)
+  - `DUCKDUCKGO_RATE_LIMIT`: Rate limit for DuckDuckGo service (30/sec)
+  - `FAVICON_RATE_LIMIT`: Rate limit for favicon fetching (30/sec)
+
+HTTP Settings:
+- `REQUEST_TIMEOUT`: Timeout duration for HTTP requests
+- `USER_AGENT`: User agent string for making HTTP requests
+
+Favicon Configuration:
+- `FAVICON_MIN_SIZE`: Minimum acceptable favicon dimensions
+- `FAVICON_LOCATIONS`: List of paths to check for favicons
 
 ## Project Structure
 
@@ -78,6 +114,7 @@ You can modify these values in `config.py` to customize the behavior of the scri
 ├── services/                # Logo service providers
 │   ├── clearbit_service.py  # Clearbit API integration
 │   ├── duckduckgo_service.py# DuckDuckGo icons service
+│   ├── favicon_service.py   # Website favicon fetcher
 │   └── default_service.py   # Default logo generator
 ├── utils/                   # Utility modules
 │   ├── url_utils.py        # URL handling functions

@@ -1,4 +1,9 @@
+import os
+import sys
 import logging
+
+# Add parent directory to Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.image_utils import create_default_logo
 
 class DefaultService:

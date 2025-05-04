@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 from services.clearbit_service import ClearbitService
 from services.duckduckgo_service import DuckDuckGoService
+from services.favicon_service import FaviconService
 from services.default_service import DefaultService
 from utils.url_utils import clean_url, get_domain_from_url
 from utils.image_utils import save_standardized_logo
@@ -21,6 +22,7 @@ class LogoScraper:
         
         # Initialize services with configuration
         self.duckduckgo = DuckDuckGoService(CONFIG['OUTPUT_SIZE'])
+        self.favicon = FaviconService(CONFIG['OUTPUT_SIZE'])
         self.clearbit = ClearbitService(CONFIG['OUTPUT_SIZE'])
         self.default = DefaultService(CONFIG['OUTPUT_SIZE'])
         
@@ -86,6 +88,20 @@ class LogoScraper:
                     if save_standardized_logo(temp_data, temp_path):
                         logo_data = temp_data
                         logo_source = "DuckDuckGo"
+                        os.remove(temp_path)
+                        break
+                    elif os.path.exists(temp_path):
+                        os.remove(temp_path)
+
+            # Try Favicon if both Clearbit and DuckDuckGo failed
+            if not logo_data:
+                temp_data = self.favicon.get_logo(domain)
+                if temp_data:
+                    # Try to save and validate the logo
+                    temp_path = os.path.join(self.temp_folder, f"{tpid}_favicon.png")
+                    if save_standardized_logo(temp_data, temp_path):
+                        logo_data = temp_data
+                        logo_source = "Favicon"
                         os.remove(temp_path)
                         break
                     elif os.path.exists(temp_path):
