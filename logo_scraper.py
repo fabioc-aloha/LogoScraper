@@ -21,6 +21,7 @@ class LogoScraper:
         self.default = DefaultService(CONFIG['OUTPUT_SIZE'])
         
         # Initialize progress tracker
+        self.total_companies = 0
         self.progress = ProgressTracker()
         
     def process_company(self, row):
@@ -101,7 +102,16 @@ class LogoScraper:
                 
             if completed % 10 == 0:
                 success_rate = (successful / completed) * 100 if completed > 0 else 0
-                logging.info(f"Progress: {completed}/{total} companies processed ({completed/total:.1%}). Batch success rate: {success_rate:.1f}%")
+                total_completed = len(self.progress.progress['completed'])
+                total_failed = len(self.progress.progress['failed'])
+                total_processed = total_completed + total_failed
+                overall_progress = (total_processed / self.total_companies * 100) if self.total_companies > 0 else 0
+                
+                logging.info(
+                    f"Batch Progress: {completed}/{total} ({completed/total:.1%}). Success rate: {success_rate:.1f}%\n"
+                    f"Overall Progress: {total_processed}/{self.total_companies} TPIDs processed ({overall_progress:.1f}%). "
+                    f"Successful: {total_completed}, Failed: {total_failed}"
+                )
 
 def main():
     # Set up logging
@@ -126,6 +136,7 @@ def main():
     
     # Create scraper
     scraper = LogoScraper()
+    scraper.total_companies = len(df)  # Set total number of companies
     
     # Process in batches
     batch_size = scraper.batch_size

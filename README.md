@@ -154,6 +154,7 @@ The script will:
 ## Output
 
 - Logos are saved in the configured output directory as `{TPID}.png`
+  - The `logos` folder comes pre-populated with company logos as of May 4, 2025
 - All logos are standardized to the configured output size in PNG format
 - A progress file (`download_progress.json`) tracks completed and failed items
   - If this file is deleted, it will be recreated based on existing logos

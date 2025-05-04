@@ -12,10 +12,10 @@ ENV/
 *.code-workspace
 
 # Project specific
-logos/
+# logos/
 download_progress.json
 logo_scraper.log
-Companies.xlsx
+# Companies.xlsx
 
 # OS specific
 .DS_Store
