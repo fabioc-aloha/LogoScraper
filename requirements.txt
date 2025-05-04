@@ -1,0 +1,6 @@
+requests==2.31.0
+pandas==2.1.4
+Pillow==10.1.0
+openpyxl==3.1.2  # Required for pandas to read Excel files
+urllib3==2.1.0    # Required by requests
+ratelimit==2.2.1  # For API rate limiting

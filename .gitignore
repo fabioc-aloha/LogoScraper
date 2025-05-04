@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+venv/
+ENV/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Project specific
+logos/
+download_progress.json
+logo_scraper.log
+Companies.xlsx
+
+# OS specific
+.DS_Store
+Thumbs.db
