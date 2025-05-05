@@ -1,3 +1,14 @@
+"""Image Processing Utilities
+
+This module provides comprehensive image processing functionality for the logo scraper.
+It handles various image operations including:
+- Logo standardization and resizing
+- Text rendering for default logos
+- Image format conversion
+- Quality validation
+- Multi-language text support
+"""
+
 import os
 import logging
 from PIL import Image, ImageDraw, ImageFont
@@ -6,7 +17,18 @@ import random
 from config import CONFIG
 
 def rounded_rectangle(draw, xy, radius, fill):
-    """Draw a rounded rectangle"""
+    """Draw a rounded rectangle on an image.
+    
+    Args:
+        draw (ImageDraw): The PIL drawing context
+        xy (list): List of [x1, y1, x2, y2] coordinates for rectangle corners
+        radius (int): Corner radius in pixels
+        fill (tuple): RGB color tuple for filling the rectangle
+    
+    The function creates a rectangle with rounded corners by combining:
+    - Main rectangle body
+    - Four corner pieces using pie slices
+    """
     x1, y1, x2, y2 = xy
     # Draw main rectangle
     draw.rectangle([x1+radius, y1, x2-radius, y2], fill=fill)
@@ -18,7 +40,26 @@ def rounded_rectangle(draw, xy, radius, fill):
     draw.pieslice([x2-radius*2, y2-radius*2, x2, y2], 0, 90, fill=fill)
 
 def create_default_logo(company_name):
-    """Create a default logo with company name in a rounded rectangle"""
+    """Create a default logo for a company using their name.
+    
+    This function generates a visually appealing default logo when no suitable
+    logo can be found online. It creates a rounded rectangle with the company
+    name or initials in a professional color scheme.
+    
+    Args:
+        company_name (str): The name of the company
+    
+    Returns:
+        bytes or None: PNG image data if successful, None if generation fails
+    
+    Features:
+    - Professional color palette
+    - Multi-language font support (CJK + Latin)
+    - Automatic text sizing and layout
+    - Fallback to initials for long names
+    - Multiple font fallbacks
+    - Error handling and logging
+    """
     try:
         size = CONFIG['OUTPUT_SIZE']
         # Create image with white background
@@ -129,7 +170,23 @@ def create_default_logo(company_name):
         return None
 
 def adjust_font_size(draw, text, font, max_width, max_height, start_size=None, min_size=None):
-    """Find the largest font size that fits the text within given dimensions"""
+    """Find the largest font size that fits text within given dimensions.
+    
+    This function performs a binary search to find the optimal font size
+    that allows the text to fit within the specified boundaries.
+    
+    Args:
+        draw (ImageDraw): The PIL drawing context
+        text (str): The text to size
+        font (ImageFont): Base font to use (path will be used)
+        max_width (int): Maximum allowed width in pixels
+        max_height (int): Maximum allowed height in pixels
+        start_size (int, optional): Starting font size to try
+        min_size (int, optional): Minimum acceptable font size
+    
+    Returns:
+        int or None: The largest font size that fits, or None if text cannot fit
+    """
     # Default sizes relative to output size if not provided
     if start_size is None:
         start_size = int(CONFIG['OUTPUT_SIZE'] * 0.4)
@@ -144,7 +201,23 @@ def adjust_font_size(draw, text, font, max_width, max_height, start_size=None, m
     return None
 
 def split_into_lines(text, max_lines):
-    """Split text into roughly equal lines, trying to break at word boundaries"""
+    """Split text into optimal lines for display.
+    
+    This function attempts to split text into roughly equal lines while
+    respecting word boundaries when possible.
+    
+    Args:
+        text (str): The text to split
+        max_lines (int): Maximum number of lines to create
+    
+    Returns:
+        list: List of strings, each representing a line of text
+    
+    The function balances:
+    - Even distribution of characters across lines
+    - Word boundary preservation
+    - Maximum line count
+    """
     words = text.split()
     if len(words) <= max_lines:
         return words
@@ -169,7 +242,21 @@ def split_into_lines(text, max_lines):
     return lines
 
 def find_font_size_for_lines(draw, lines, font, max_width, max_height, start_size=None, min_size=None):
-    """Find the largest font size that fits all lines within given dimensions"""
+    """Find the largest font size that fits multiple lines of text.
+    
+    Args:
+        draw (ImageDraw): The PIL drawing context
+        lines (list): List of text lines to fit
+        font (ImageFont): Base font to use (path will be used)
+        max_width (int): Maximum allowed width in pixels
+        max_height (int): Maximum allowed height in pixels
+        start_size (int, optional): Starting font size to try
+        min_size (int, optional): Minimum acceptable font size
+    
+    Returns:
+        int or None: The largest font size that fits all lines, or None if
+            text cannot fit
+    """
     # Default sizes relative to output size if not provided
     if start_size is None:
         start_size = int(CONFIG['OUTPUT_SIZE'] * 0.4)
@@ -189,7 +276,20 @@ def find_font_size_for_lines(draw, lines, font, max_width, max_height, start_siz
     return None
 
 def draw_centered_text(draw, text, font, width, height):
-    """Draw text centered in the image"""
+    """Draw text centered both horizontally and vertically.
+    
+    This function handles proper text positioning with consideration for:
+    - Font metrics (ascent/descent)
+    - Visual centering adjustments
+    - Pixel-perfect positioning
+    
+    Args:
+        draw (ImageDraw): The PIL drawing context
+        text (str): The text to draw
+        font (ImageFont): The font to use
+        width (int): Total width of the image
+        height (int): Total height of the image
+    """
     bbox = draw.textbbox((0, 0), text, font=font)
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
@@ -202,7 +302,21 @@ def draw_centered_text(draw, text, font, width, height):
     draw.text((x, y), text, font=font, fill='white')
 
 def draw_multiline_text(draw, lines, font, width, height):
-    """Draw multiple lines of text centered in the image"""
+    """Draw multiple lines of text with proper spacing and centering.
+    
+    This function handles the layout of multiple text lines with:
+    - Vertical spacing between lines (18% of line height)
+    - Individual line centering
+    - Overall block centering
+    - Visual weight balancing
+    
+    Args:
+        draw (ImageDraw): The PIL drawing context
+        lines (list): List of text lines to draw
+        font (ImageFont): The font to use
+        width (int): Total width of the image
+        height (int): Total height of the image
+    """
     # Calculate total height of all lines
     line_heights = []
     total_height = 0
@@ -228,7 +342,29 @@ def draw_multiline_text(draw, lines, font, width, height):
         current_y += line_heights[i] + line_spacing
 
 def save_standardized_logo(image_data, output_path):
-    """Save logo as a standardized PNG with configured size"""
+    """Save logo as a standardized PNG with quality controls.
+    
+    This function processes and validates logo images, ensuring they meet
+    quality standards before saving. It handles:
+    - Image format conversion
+    - Size standardization
+    - Quality validation
+    - Transparency handling
+    - Error recovery
+    
+    Args:
+        image_data (bytes): Raw image data to process
+        output_path (str): Where to save the processed logo
+    
+    Returns:
+        bool: True if processing and saving succeeded, False otherwise
+    
+    Quality checks:
+    - Minimum source image size
+    - Maximum upscaling ratio (8x)
+    - Format validation
+    - Output verification
+    """
     if not image_data:
         return False
     

@@ -1,230 +1,203 @@
 # Company Logo Scraper
 
-A Python utility that automatically downloads company logos from various sources and standardizes them into a consistent PNG format. Achieves a high success rate through multiple fallback mechanisms and robust error handling.
+A high-performance Python utility that automatically downloads and standardizes company logos from various sources. Uses parallel processing and intelligent caching to achieve optimal performance while maintaining high success rates through multiple fallback mechanisms.
 
-## Features
+## Key Features
 
-- Fetches logos from multiple sources in order of preference:
-  1. Clearbit Logo API
-  2. DuckDuckGo Icons Service (first fallback)
-  3. Website Favicon (second fallback)
-  4. Default logo generation (final fallback)
+### Performance and Optimization
+- Parallel processing using Python's multiprocessing
+- Resource-efficient operation with automatic CPU core management
+- Intelligent caching of failed domains to prevent redundant requests
+- Session reuse for optimal network performance
+- Memory-efficient batch processing
+- Proper resource cleanup and memory management
 
-- Image Processing:
-  - Standardizes all logos to configured dimensions
-  - Maintains aspect ratios
-  - Handles transparency with white background
-  - Supports ICO and various image formats
-  - High-quality scaling using Lanczos resampling
-  - Image validation and verification
-  - Configurable minimum size requirements to ensure quality
-  - Maximum upscaling ratio of 8x to maintain quality
+### Logo Sources (In Order of Priority)
+1. Clearbit Logo API (Primary source)
+2. DuckDuckGo Icons Service (First fallback)
+3. Default Logo Generation (Final fallback)
 
-- Smart URL Handling:
-  - Supports multiple URLs per company
-  - Automatic scheme detection (http/https)
-  - Handles malformed URLs
-  - Supports international domains
-  - Email-style URL cleanup
-  - Multiple URL fallbacks
-  - Domain extraction and normalization
+### Image Processing
+- Standardizes logos to configurable dimensions
+- Maintains aspect ratios with centered positioning
+- Handles transparency with white background
+- Supports ICO and various image formats
+- High-quality scaling using Lanczos resampling
+- Image validation and verification
+- Quality control:
+  - Minimum size requirements
+  - Maximum upscaling ratio of 8x
+  - Format validation and conversion
 
-- Default Logo Generation:
-  - Professional color schemes
-  - Company initials with proper centering
-  - Multi-language support (English, Japanese, Chinese, Korean)
-  - Multiple font fallbacks
-  - High-quality font rendering
-  - Automatic text layout for long names
-  - Visual weight compensation
-  - Consistent sizing and spacing
+### Smart URL Handling
+- Multiple URL fallbacks per company
+- Automatic scheme detection (http/https)
+- Malformed URL cleanup
+- International domain support
+- Email-style URL cleanup
+- Domain extraction and normalization
 
-- Process Management:
-  - Batch processing with configurable size (default: 200)
-  - Built-in rate limiting for APIs
-  - Progress tracking and resume capability
-  - Comprehensive logging
-  - Error recovery and retry mechanisms
-  - Memory usage optimization
+### Default Logo Generator
+- Professional color schemes
+- Dynamic text sizing and layout
+- Multi-language support (CJK + Latin)
+- Multiple font fallbacks
+- Automatic text arrangement for long names
+- Visual weight compensation
+- Consistent branding elements
+
+### Process Management
+- Configurable parallel batch processing
+- Built-in rate limiting for APIs
+- Progress tracking with auto-resume
+- Comprehensive logging system
+- Error recovery and retry mechanisms
+- Proper resource cleanup
+- Memory usage optimization
+
+## Requirements
+
+Install required packages via pip:
+```bash
+pip install -r requirements.txt
+```
+
+Dependencies:
+- requests==2.31.0: HTTP request handling
+- pandas==2.1.4: Data processing
+- Pillow==10.1.0: Image processing
+- openpyxl==3.1.2: Excel file support
+- ratelimit==2.2.1: API rate limiting
+- urllib3==2.1.0: Enhanced HTTP support
+- Additional dependencies for full functionality listed in requirements.txt
 
 ## Configuration
 
-All configuration settings are centralized in `config.py`. Here's the default configuration:
+All settings are centralized in `config.py`:
 
-```python
-CONFIG = {
-    # Output and Processing
-    'OUTPUT_SIZE': 512,      # Target size for logos
-    'MIN_SOURCE_SIZE': 120,  # Minimum source image size to avoid excessive upscaling
-    'BATCH_SIZE': 200,       # Number of companies to process in each batch
-    'OUTPUT_FOLDER': 'logos',# Output folder for saved logos
-    'TEMP_FOLDER': 'temp',   # Temporary folder for logo validation
-    'INPUT_FILE': 'Companies.xlsx',  # Input Excel file containing company data
-    'CORNER_RADIUS': 40,     # Corner radius for rounded rectangles in default logos
+### Core Settings
+- `OUTPUT_SIZE`: Logo dimensions (default: 512×512)
+- `MIN_SOURCE_SIZE`: Minimum source image size (default: 120px)
+- `BATCH_SIZE`: Parallel processing batch size (default: 200)
+- `OUTPUT_FOLDER`: Logo storage location
+- `TEMP_FOLDER`: Temporary processing directory
+- `INPUT_FILE`: Source Excel file name
+- `CORNER_RADIUS`: Default logo corner rounding
 
-    # Service Rate Limits (requests per minute)
-    'CLEARBIT_RATE_LIMIT': 3600,  # 60 requests per second
-    'DUCKDUCKGO_RATE_LIMIT': 1800,  # 30 requests per second
-    'FAVICON_RATE_LIMIT': 1800,  # 30 requests per second
+### Service Configuration
+Rate limits (per minute):
+- Clearbit API: 3600 (60/sec)
+- DuckDuckGo: 1800 (30/sec)
+- Favicon fetching: 1800 (30/sec)
 
-    # HTTP Configuration
-    'REQUEST_TIMEOUT': 10,  # Timeout for HTTP requests in seconds
-    'USER_AGENT': '...',   # User agent string for HTTP requests
-
-    # Favicon Service Configuration
-    'FAVICON_MIN_SIZE': 32,  # Minimum size for favicons in pixels
-    'FAVICON_LOCATIONS': [   # Common favicon locations to check
-        '/favicon.ico',
-        '/favicon.png',
-        '/apple-touch-icon.png',
-        '/apple-touch-icon-precomposed.png'
-    ]
-}
-```
-
-You can modify these values in `config.py` to customize the behavior of the script:
-
-Core Settings:
-- `OUTPUT_SIZE`: Determines the final dimensions of processed logos
-- `MIN_SOURCE_SIZE`: Sets the minimum acceptable source image dimensions
-- `BATCH_SIZE`: Controls how many companies are processed in each batch
-- `OUTPUT_FOLDER`: Specifies where processed logos are saved
-- `TEMP_FOLDER`: Sets the directory for temporary files during logo validation
-- `INPUT_FILE`: Sets the name of the input Excel file
-- `CORNER_RADIUS`: Adjusts the corner roundness of generated default logos
-
-Service Configuration:
-- Rate Limits (per minute):
-  - `CLEARBIT_RATE_LIMIT`: Rate limit for Clearbit API (60/sec)
-  - `DUCKDUCKGO_RATE_LIMIT`: Rate limit for DuckDuckGo service (30/sec)
-  - `FAVICON_RATE_LIMIT`: Rate limit for favicon fetching (30/sec)
-
-HTTP Settings:
-- `REQUEST_TIMEOUT`: Timeout duration for HTTP requests
-- `USER_AGENT`: User agent string for making HTTP requests
-
-Favicon Configuration:
-- `FAVICON_MIN_SIZE`: Minimum acceptable favicon dimensions
-- `FAVICON_LOCATIONS`: List of paths to check for favicons
+### Network Settings
+- `REQUEST_TIMEOUT`: HTTP timeout (default: 10s)
+- `USER_AGENT`: Browser identification string
 
 ## Project Structure
 
 ```
-├── logo_scraper.py          # Main entry point
-├── services/                # Logo service providers
+├── logo_scraper.py          # Main application entry point
+├── services/               # Logo service implementations
 │   ├── clearbit_service.py  # Clearbit API integration
-│   ├── duckduckgo_service.py# DuckDuckGo icons service
-│   ├── favicon_service.py   # Website favicon fetcher
+│   ├── duckduckgo_service.py# DuckDuckGo service
 │   └── default_service.py   # Default logo generator
-├── utils/                   # Utility modules
-│   ├── url_utils.py        # URL handling functions
-│   ├── image_utils.py      # Image processing functions
-│   └── progress_tracker.py # Progress tracking
-├── logos/                  # Output directory for logos
-├── temp/                   # Temporary storage for logo validation
-├── Companies.xlsx          # Input file with company data
+├── utils/                  # Utility modules
+│   ├── url_utils.py        # URL processing
+│   ├── image_utils.py      # Image processing
+│   └── progress_tracker.py # Progress management
+├── logos/                  # Processed logos
+├── temp/                   # Temporary files
+├── Companies.xlsx          # Input data
 └── requirements.txt        # Python dependencies
 ```
 
-## Requirements
-
-Required packages (install via `pip install -r requirements.txt`):
-- requests: For HTTP requests
-- pandas: For Excel file handling
-- Pillow: For image processing
-- openpyxl: For Excel file support
-- ratelimit: For API rate limiting
-- urllib3: For enhanced HTTP support
-
-## Setup
-
-1. Clone or download this repository
-2. Create a virtual environment (recommended):
-   ```
-   python -m venv .venv
-   .venv\Scripts\activate  # On Windows
-   source .venv/bin/activate  # On Unix/MacOS
-   ```
-3. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
-
 ## Input File Format
 
-The script expects an Excel file named `Companies.xlsx` with the following columns:
+The script expects an Excel file (`Companies.xlsx`) with these columns:
 
-Required Columns:
-- `TPID`: Unique identifier for each company. Used as the filename for the saved logo (e.g., "12345.png")
-- `TPAccountName`: Primary company name from the Trading Partner system
-- `CRMAccountName`: Alternative company name from the CRM system (fallback if TPAccountName is empty)
-- `WebsiteURL`: Primary website URL to search for the company logo
-- `WebsiteURLspm`: Secondary website URL (fallback if logo not found on primary URL)
+Required Fields:
+- `TPID`: Unique company identifier (used for filename)
+- `TPAccountName`: Primary company name
+- `CRMAccountName`: Alternative company name (fallback)
+- `WebsiteURL`: Primary website URL
+- `WebsiteURLspm`: Backup website URL
 
-The script uses redundant data sources to improve success rates:
-
-Company Names:
-- `TPAccountName` is tried first as it's typically more accurate
-- If `TPAccountName` is empty or invalid, falls back to `CRMAccountName`
-- At least one company name is required for generating default logos if no logo is found online
-
-Website URLs:
-- `WebsiteURL` is checked first for logo extraction
-- If no logo is found or the URL is invalid, `WebsiteURLspm` is tried as a backup
-- If both URLs fail, the script will generate a default logo using the company name
-
-Note: When providing URLs, they don't need to include the protocol (http/https). The script will automatically handle URL normalization and cleanup.
+Data Handling:
+- Company names: Tries TPAccountName first, falls back to CRMAccountName
+- URLs: Checks WebsiteURL first, falls back to WebsiteURLspm
+- Generates default logo if no online logo found
 
 ## Usage
 
-1. Place your `Companies.xlsx` file in the project root directory
-2. Run the script:
+1. Prepare your environment:
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate  # Windows
+   source .venv/bin/activate  # Unix/MacOS
+   pip install -r requirements.txt
    ```
+
+2. Place your Companies.xlsx file in the project directory
+
+3. Run the script:
+   ```bash
    python logo_scraper.py
    ```
 
 The script will:
-- Process companies in configurable batch sizes (default: 200)
-- Automatically handle rate limits for different APIs
-- Save processed logos to the `logos` folder
-- Track progress in `download_progress.json`
-- Initialize progress from existing logos if no progress file exists
-- Log detailed information to `logo_scraper.log`
+- Process companies in parallel batches
+- Respect API rate limits
+- Save logos as standardized PNGs
+- Track progress for resume capability
+- Provide detailed logging
 
 ## Output
 
-- Logos are saved in the configured output directory as `{TPID}.png`
-  - The `logos` folder comes pre-populated with company logos as of May 4, 2025
-- All logos are standardized to the configured output size in PNG format
-- A progress file (`download_progress.json`) tracks completed and failed items
-  - If this file is deleted, it will be recreated based on existing logos
-  - Prevents reprocessing of already downloaded logos
-- A log file (`logo_scraper.log`) contains detailed operation information
+- Standardized logos in `logos/{TPID}.png`
+- Progress tracking in `download_progress.json`
+- Detailed logs in `logo_scraper.log`
+- Failed domain cache for optimization
+
+## Performance Optimization
+
+The script includes several optimizations:
+1. Parallel processing using multiple CPU cores
+2. Failed domain caching to avoid redundant requests
+3. Session reuse for network efficiency
+4. Unordered processing for maximum throughput
+5. Efficient resource cleanup
+6. Memory usage management
+7. Configurable batch sizes
 
 ## Error Handling
 
-The script includes comprehensive error handling for:
-- Invalid or malformed URLs
-- Failed API requests
+Comprehensive error handling for:
+- Network failures
+- API rate limits
 - Invalid image data
-- Network timeouts and retries
-- Rate limit handling
-- File system errors
-- Image quality requirements:
-  - Minimum size validation (largest dimension must be at least 120px)
-  - Maximum upscaling ratio (8x) to maintain quality
-- URL parsing errors
-- Font loading failures
-- Memory constraints
-- API service outages
+- Resource constraints
+- File system issues
+- Data validation
+- Memory management
+
+## Resource Management
+
+The script properly manages:
+- Network connections
+- Temporary files
+- Memory usage
+- CPU utilization
+- API rate limits
+- File handles
 
 ## Logging
 
-The script provides detailed logging with:
-- Timestamp for each operation
-- Logo source attempts and successes
-- Image processing steps and validation
-- Success/failure status with reasons
-- Progress statistics and success rates
-- Error details and stack traces
-- Batch processing statistics
+Detailed logging includes:
+- Operation timestamps
+- Success/failure tracking
+- Processing statistics
+- Error details
+- Resource usage
+- Performance metrics
+- Batch processing status

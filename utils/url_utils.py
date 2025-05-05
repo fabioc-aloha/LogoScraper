@@ -1,9 +1,42 @@
+"""URL Processing Utilities
+
+This module provides utility functions for processing and normalizing URLs and domain names.
+It handles various edge cases and malformed URLs to ensure maximum compatibility with
+different URL formats found in company data.
+
+The module includes comprehensive error handling and logging for URL processing failures.
+"""
+
 import logging
 import pandas as pd
 from urllib.parse import urlparse
 
 def clean_url(url):
-    """Clean and normalize a URL"""
+    """Clean and normalize a URL to a standard format.
+    
+    This function handles various URL formats and edge cases to produce a
+    consistent, usable URL. It performs the following normalizations:
+    - Removes whitespace
+    - Converts to lowercase
+    - Handles comma-separated URLs (takes first)
+    - Removes email-style URLs
+    - Adds https:// scheme if missing
+    
+    Args:
+        url (str): The URL to clean and normalize
+    
+    Returns:
+        str or None: The normalized URL if successful, None if the URL is
+            invalid or empty
+    
+    Examples:
+        >>> clean_url("example.com")
+        'https://example.com'
+        >>> clean_url("user@example.com")
+        'https://user'
+        >>> clean_url("example.com, backup.com")
+        'https://example.com'
+    """
     if not url or pd.isna(url):
         return None
         
@@ -26,7 +59,28 @@ def clean_url(url):
     return url
 
 def get_domain_from_url(url):
-    """Extract domain from URL"""
+    """Extract and normalize the domain name from a URL.
+    
+    This function parses URLs and extracts the domain name, performing
+    standard normalizations like removing 'www.' prefixes.
+    
+    Args:
+        url (str): The URL to extract the domain from
+    
+    Returns:
+        str or None: The normalized domain name if successful, None if the
+            URL is invalid or cannot be parsed
+    
+    Examples:
+        >>> get_domain_from_url("https://www.example.com/path")
+        'example.com'
+        >>> get_domain_from_url("example.com")
+        'example.com'
+    
+    Note:
+        The function automatically cleans the URL using clean_url() before
+        extracting the domain.
+    """
     if not url or pd.isna(url):
         return None
     try:
