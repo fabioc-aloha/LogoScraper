@@ -88,7 +88,6 @@ All settings are centralized in `config.py`:
 Rate limits (per minute):
 - Clearbit API: 3600 (60/sec)
 - DuckDuckGo: 1800 (30/sec)
-- Favicon fetching: 1800 (30/sec)
 
 ### Network Settings
 - `REQUEST_TIMEOUT`: HTTP timeout (default: 10s)
@@ -97,19 +96,22 @@ Rate limits (per minute):
 ## Project Structure
 
 ```
-├── logo_scraper.py          # Main application entry point
-├── services/               # Logo service implementations
-│   ├── clearbit_service.py  # Clearbit API integration
-│   ├── duckduckgo_service.py# DuckDuckGo service
-│   └── default_service.py   # Default logo generator
-├── utils/                  # Utility modules
-│   ├── url_utils.py        # URL processing
-│   ├── image_utils.py      # Image processing
-│   └── progress_tracker.py # Progress management
-├── logos/                  # Processed logos
-├── temp/                   # Temporary files
-├── Companies.xlsx          # Input data
-└── requirements.txt        # Python dependencies
+├── logo_scraper.py           # Main application entry point
+├── services/                 # Logo service implementations
+│   ├── clearbit_service.py   # Clearbit API integration
+│   ├── duckduckgo_service.py # DuckDuckGo service
+│   └── default_service.py    # Default logo generator
+├── utils/                    # Utility modules
+│   ├── batch_processor.py    # Parallel batch processing
+│   ├── company_processor.py  # Individual company processing
+│   ├── filter_utils.py       # DataFrame filtering
+│   ├── url_utils.py          # URL processing
+│   ├── image_utils.py        # Image processing
+│   └── progress_tracker.py   # Progress management
+├── logos/                    # Processed logos
+├── temp/                     # Temporary files
+├── Companies.xlsx            # Input data
+└── requirements.txt          # Python dependencies
 ```
 
 ## Input File Format

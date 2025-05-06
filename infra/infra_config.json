@@ -1,0 +1,24 @@
+{
+    "resourceNames": {
+        "resourceGroup": "rg-logo-scraper",
+        "storageAccount": "stlogoscraper",
+        "cdnProfile": "cdn-logo-scraper",
+        "computerVision": "cog-logo-scraper",
+        "keyVault": "kv-logo-scraper",
+        "managedIdentity": "id-logo-scraper"
+    },
+    "inputData": {
+        "storageUrl": "https://cpestaginglake.dfs.core.windows.net",
+        "containerName": "synapse",
+        "filePath": "dimcyallaccounts/*.parquet",
+        "useParquet": true,
+        "useManagedIdentity": true
+    },
+    "environment": "prod",
+    "location": "eastus2",
+    "tags": {
+        "application": "logo-scraper",
+        "component": "logo-storage",
+        "environment": "prod"
+    }
+}
