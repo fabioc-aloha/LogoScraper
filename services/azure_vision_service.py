@@ -1,7 +1,38 @@
 """Azure Computer Vision Service Integration
 
 This module provides integration with Azure Computer Vision for enhanced logo analysis,
-including brand detection, quality assessment, and duplicate detection.
+including brand detection, quality assessment, and inappropriate content detection.
+It follows Azure best practices for security and performance:
+
+Security:
+- Managed Identity authentication for secure access
+- Azure Key Vault integration for secrets
+- Network security rules with private endpoints
+- Rate limiting and retry policies
+- Secure configuration with least privilege
+- Input validation and sanitization
+
+Performance:
+- Client reuse for connection efficiency
+- Batch processing capabilities
+- Optimized network settings
+- Result caching where appropriate
+- Resource cleanup
+
+Features:
+- Logo quality analysis with scoring
+- Brand detection in logos
+- Adult/inappropriate content detection
+- Text detection and OCR
+- Object recognition
+- Image quality metrics
+
+Error Handling:
+- Automatic retries for transient failures
+- Comprehensive error logging
+- Service health monitoring
+- Graceful degradation
+- Resource cleanup
 """
 
 import os
@@ -32,7 +63,18 @@ class AzureVisionService:
     """
 
     def __init__(self, config_file=None):
-        """Initialize the Azure Computer Vision service."""
+        """Initialize the Azure Computer Vision service.
+        
+        Args:
+            config_file (str, optional): Path to Azure configuration file.
+                If not provided, will look for azure_config.json in root directory.
+                
+        Security notes:
+        - Uses Azure Managed Identity for authentication
+        - Key Vault for secret management
+        - Network rules for access control
+        - Least privilege RBAC assignments
+        """
         try:
             # Load Azure configuration
             if config_file is None:

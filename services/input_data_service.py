@@ -2,6 +2,39 @@
 
 This module handles fetching and filtering data from Azure Data Lake Storage Gen2.
 It supports reading Parquet datasets and applying filters before processing.
+Following Azure best practices for security and performance:
+
+Security:
+- Managed Identity authentication only
+- Network security with private endpoints
+- Row-level security support
+- Data encryption at rest
+- Secure transfer required
+- RBAC with least privilege
+
+Performance:
+- Parquet format for efficient querying
+- Column filtering for reduced data transfer
+- Query optimization with file patterns
+- Connection pooling and reuse
+- Automatic retry for resilience
+- Batch data retrieval
+
+Features:
+- Flexible data filtering
+- Column discovery
+- Pattern matching for files
+- Directory traversal
+- Progress tracking
+- Error resilience
+
+Error Handling:
+- Connection retry logic
+- Comprehensive logging
+- Resource cleanup
+- Data validation
+- Exception handling
+- Graceful degradation
 """
 
 import os
@@ -22,7 +55,18 @@ class InputDataService:
     """Service for handling input data from Azure Data Lake Storage Gen2."""
     
     def __init__(self, config_file=None):
-        """Initialize the input data service."""
+        """Initialize the input data service.
+        
+        Args:
+            config_file (str, optional): Path to configuration file.
+                If not provided, will look in infra/infra_config.json
+                
+        Security:
+        - Uses only Managed Identity authentication
+        - No connection strings or access keys
+        - Enforces TLS 1.2 or higher
+        - Network rules restrict access
+        """
         try:
             # Configure logging
             if CONFIG.get('HIDE_AUTH_LOGS'):

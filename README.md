@@ -1,8 +1,17 @@
 # Company Logo Scraper
 
-A high-performance Python utility that automatically downloads and standardizes company logos from various sources. Uses parallel processing and intelligent caching to achieve optimal performance while maintaining high success rates through multiple fallback mechanisms.
+A high-performance Python utility that automatically downloads and standardizes company logos from various sources, leveraging Azure services for scalable cloud storage, CDN delivery, and AI-powered logo analysis.
 
 ## Key Features
+
+### Azure Integration
+- Azure Data Lake Storage Gen2 for input data
+- Azure Blob Storage with CDN for logo storage and delivery
+- Azure Computer Vision for logo quality analysis
+- Azure Key Vault for secure credential management
+- Managed Identity authentication for security
+- Role-based access control (RBAC)
+- Infrastructure as Code using Bicep
 
 ### Performance and Optimization
 - Parallel processing using Python's multiprocessing
@@ -55,6 +64,45 @@ A high-performance Python utility that automatically downloads and standardizes 
 - Proper resource cleanup
 - Memory usage optimization
 
+## Azure Infrastructure
+
+### Required Azure Resources
+- Storage Account (for logo storage)
+- CDN Profile and Endpoint (for logo delivery)
+- Computer Vision service (for logo analysis)
+- Key Vault (for secret management)
+- User-assigned Managed Identity (for secure access)
+- Azure Data Lake Storage Gen2 (for input data)
+
+### Authentication & Security
+- Uses Azure Managed Identity for secure authentication
+- Role-based access control (RBAC) for resource access
+- No hardcoded credentials - all secrets in Key Vault
+- Network security rules for resource access
+- TLS 1.2+ encryption for data in transit
+- Access auditing and monitoring
+
+### Deployment
+1. Update `infra/infra_config.json` with your desired resource names and settings
+2. Deploy infrastructure:
+   ```bash
+   cd infra
+   ./deploy.ps1
+   ```
+3. The script will:
+   - Create/update required Azure resources
+   - Configure security and networking
+   - Set up CDN endpoint
+   - Store connection information in Key Vault
+
+### Azure Resource Configuration
+The infrastructure is defined in `infra/main.bicep` and includes:
+- Storage Account with blob containers for logos and temp files
+- CDN Profile with endpoint for logo delivery
+- Computer Vision service for logo analysis
+- Key Vault for secret management
+- Managed Identity with appropriate RBAC assignments
+
 ## Requirements
 
 Install required packages via pip:
@@ -93,14 +141,40 @@ Rate limits (per minute):
 - `REQUEST_TIMEOUT`: HTTP timeout (default: 10s)
 - `USER_AGENT`: Browser identification string
 
+## Azure Configuration
+
+Azure-specific settings in `infra/infra_config.json`:
+- Resource naming
+- Environment (dev/prod)
+- Location
+- Tags
+- Storage configuration
+- Input data settings
+
+Azure connection settings in `azure_config.json` (generated during deployment):
+- Storage account details
+- Computer Vision endpoint
+- CDN endpoint
+- Managed Identity client ID
+- Key Vault details
+
 ## Project Structure
 
 ```
+├── infra/                   # Azure infrastructure
+│   ├── deploy.ps1          # Deployment script
+│   ├── infra_config.json   # Infrastructure configuration
+│   ├── main.bicep          # Infrastructure as Code
+│   └── main.parameters.json # Deployment parameters
 ├── logo_scraper.py           # Main application entry point
-├── services/                 # Logo service implementations
-│   ├── clearbit_service.py   # Clearbit API integration
-│   ├── duckduckgo_service.py # DuckDuckGo service
-│   └── default_service.py    # Default logo generator
+├── services/                 # Service implementations
+│   ├── azure_storage_service.py    # Azure Storage integration
+│   ├── azure_vision_service.py     # Computer Vision integration
+│   ├── clearbit_service.py         # Clearbit API integration
+│   ├── company_search_service.py   # URL discovery service
+│   ├── default_service.py          # Default logo generator
+│   ├── duckduckgo_service.py       # DuckDuckGo service
+│   └── input_data_service.py       # Data Lake integration
 ├── utils/                    # Utility modules
 │   ├── batch_processor.py    # Parallel batch processing
 │   ├── company_processor.py  # Individual company processing

@@ -1,7 +1,31 @@
 """Azure Storage Service Integration
 
 This module provides integration with Azure Blob Storage for storing and serving
-logos through Azure CDN.
+logos through Azure CDN. It follows Azure best practices for security and performance:
+
+Security:
+- Uses Managed Identity authentication instead of connection strings
+- RBAC permissions with least privilege principle
+- Secure transfer (HTTPS) required
+- Network rules and IP restrictions
+- Encryption at rest with Microsoft-managed keys
+- All secrets stored in Key Vault
+
+Performance:
+- CDN integration for fast global delivery
+- Content type optimization for images
+- Proper cache control headers
+- Batch operations for efficiency
+- Retry logic for resilience
+- Connection pooling
+
+The service supports:
+- Logo storage with CDN delivery
+- Temporary file management
+- Proper resource cleanup
+- Error handling and logging
+- Content type detection
+- Cache control optimization
 """
 
 import os
@@ -32,7 +56,18 @@ class AzureStorageService:
     """
 
     def __init__(self, config_file=None):
-        """Initialize the Azure Storage service."""
+        """Initialize the Azure Storage service.
+        
+        Args:
+            config_file (str, optional): Path to Azure configuration file.
+                If not provided, will look for azure_config.json in root directory.
+                
+        Security notes:
+        - Uses Azure Managed Identity for secure authentication
+        - No connection strings or keys in code
+        - Network rules restrict access
+        - Role assignments follow least privilege
+        """
         try:
             # Load Azure configuration
             if config_file is None:
