@@ -2,6 +2,10 @@
 
 import os
 import sys
+from pathlib import Path
+# Add project root to sys.path for module imports
+project_root = str(Path(__file__).resolve().parent.parent)
+sys.path.append(project_root)
 import pandas as pd
 from services.input_data_service import InputDataService
 from utils.company_processor import CompanyProcessor

@@ -7,7 +7,7 @@ A streamlined Python utility that downloads and standardizes company logos from 
 ### Core Functionality
 - Downloads company logos from Clearbit API (primary source)
 - Falls back to domain favicons via DuckDuckGo icons service (`.ico`) if Clearbit fails
-- Generates default logos when online logos unavailable
+- Generates default logos when online logos unavailable (draws square backgrounds without rounded corners, uses up to 4-character initials)
 - Standardizes all logos to consistent format and size
 - Parallel processing for efficiency
 - Progress tracking and resume capability
@@ -22,6 +22,7 @@ A streamlined Python utility that downloads and standardizes company logos from 
 - Basic quality controls
 - Improved text rendering for international characters
 - Better vertical positioning of text in generated logos
+- Draws square backgrounds for default logos (no rounded corners)
 
 ### URL Handling
 - URL cleanup and normalization
@@ -50,7 +51,6 @@ Core Dependencies:
 - Pillow: Image processing
 - openpyxl: Excel file support
 - ratelimit: API rate limiting
-- duckduckgo_search: Company URL discovery
 
 ## Configuration
 

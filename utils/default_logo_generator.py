@@ -133,11 +133,11 @@ def create_default_logo(company_name):
                 else:
                     # For other scripts, try to use initials if there are multiple words
                     if len(words) > 1:
-                        # Get first letter of each word, up to 3
-                        abbrev = ''.join(word[0] for word in words[:min(3, len(words))]).upper()
+                        # Get first letter of each word, up to 4
+                        abbrev = ''.join(word[0] for word in words[:min(4, len(words))]).upper()
                     else:
-                        # Single word - use first 2-3 characters
-                        abbrev = company_name[:min(3, len(company_name))].upper()
+                        # Single word - use first up to 4 characters
+                        abbrev = company_name[:min(4, len(company_name))].upper()
                 
                 # Apply the abbreviated text
                 abbrev_font = load_font_with_fallback(script, int(size * 0.35))

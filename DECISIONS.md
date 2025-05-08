@@ -77,6 +77,9 @@ C:\Data\
 - Improved text positioning and layout
 - Comprehensive international character rendering
 
+### Recent Updates
+- Default logos now use square backgrounds (no rounded corners) and support up to 4-character initials for better handling of long company names
+
 ## 4. Service Layer Design
 
 ### Implementation
