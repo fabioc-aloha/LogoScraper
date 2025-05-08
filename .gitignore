@@ -1,23 +1,36 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
 .env
 .venv
+env/
 venv/
 ENV/
 
-# VS Code
+# IDE specific files
+.idea/
 .vscode/
-*.code-workspace
+*.swp
+*.swo
 
-# Project specific
-download_progress.json
+# Project specific files
+*.log
 logo_scraper.log
+download_progress.json
+failed_domains_cache.json
+
+# Project specific directories
 temp/
-logos/
+tests/
 
 # OS specific
 .DS_Store
-Thumbs.db
-/logos/Thumbs.db
+desktop.ini

@@ -1,193 +1,76 @@
 """Input Data Service
 
-This module handles fetching and filtering data from Azure Data Lake Storage Gen2.
-It supports reading Parquet datasets and applying filters before processing.
-Following Azure best practices for security and performance:
-
-Security:
-- Managed Identity authentication only
-- Network security with private endpoints
-- Row-level security support
-- Data encryption at rest
-- Secure transfer required
-- RBAC with least privilege
-
-Performance:
-- Parquet format for efficient querying
-- Column filtering for reduced data transfer
-- Query optimization with file patterns
-- Connection pooling and reuse
-- Automatic retry for resilience
-- Batch data retrieval
-
-Features:
-- Flexible data filtering
-- Column discovery
-- Pattern matching for files
-- Directory traversal
-- Progress tracking
-- Error resilience
-
-Error Handling:
-- Connection retry logic
-- Comprehensive logging
-- Resource cleanup
-- Data validation
-- Exception handling
-- Graceful degradation
+This module handles reading and filtering data from Excel files.
+Simplified to focus on core functionality.
 """
 
-import os
-import io
-import json
 import logging
 import pandas as pd
-import pyarrow.parquet as pq
-from azure.identity import DefaultAzureCredential
-from azure.storage.filedatalake import DataLakeServiceClient
-import sys
-
-# Add parent directory to Python path to import config
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from config import CONFIG
 
 class InputDataService:
-    """Service for handling input data from Azure Data Lake Storage Gen2."""
-    
-    def __init__(self, config_file=None):
-        """Initialize the input data service.
-        
-        Args:
-            config_file (str, optional): Path to configuration file.
-                If not provided, will look in infra/infra_config.json
-                
-        Security:
-        - Uses only Managed Identity authentication
-        - No connection strings or access keys
-        - Enforces TLS 1.2 or higher
-        - Network rules restrict access
-        """
-        try:
-            # Configure logging
-            if CONFIG.get('HIDE_AUTH_LOGS'):
-                logging.getLogger('azure.identity').setLevel(logging.WARNING)
-                logging.getLogger('azure.core.pipeline.policies').setLevel(logging.WARNING)
-            
-            # Load configuration
-            if config_file is None:
-                config_file = os.path.join(
-                    os.path.dirname(os.path.dirname(__file__)),
-                    'infra',
-                    'infra_config.json'
-                )
-            
-            if not os.path.exists(config_file):
-                raise FileNotFoundError(f"Config file not found: {config_file}")
-                
-            with open(config_file, 'r') as f:
-                self.config = json.load(f)
-            
-            # Validate input data configuration
-            input_config = self.config.get('inputData', {})
-            required_fields = ['storageUrl', 'containerName', 'filePath']
-            missing_fields = [f for f in required_fields if not input_config.get(f)]
-            if missing_fields:
-                raise ValueError(
-                    f"Missing required input data configuration: {', '.join(missing_fields)}"
-                )
-            
-            # Initialize Data Lake client
-            self.storage_url = input_config['storageUrl']
-            self.container_name = input_config['containerName']
-            self.file_pattern = input_config['filePath']
-            
-            if input_config.get('useManagedIdentity', True):
-                credential = DefaultAzureCredential()
-            else:
-                raise ValueError("Only managed identity authentication is supported")
-                
-            self.datalake_client = DataLakeServiceClient(
-                account_url=self.storage_url,
-                credential=credential
-            )
-            
-        except Exception as e:
-            logging.error(f"Error initializing InputDataService: {str(e)}")
-            raise
-
-    def list_available_columns(self):
-        """Get list of available columns in the dataset."""
-        try:
-            # Get the first dataset to check columns
-            df = self.get_data(top_n=1)
-            columns = list(df.columns)
-            logging.debug(f"Available columns: {', '.join(columns)}")
-            return columns
-        except Exception as e:
-            logging.error(f"Error listing columns: {str(e)}")
-            return []
+    """Service for handling input data from Excel files."""
 
     def get_data(self, filters=None, top_n=None):
-        """Get filtered data from Azure Data Lake Storage."""
+        """Get filtered data from Excel file."""
         try:
-            # Get container client
-            file_system_client = self.datalake_client.get_file_system_client(self.container_name)
+            # Read Excel file
+            input_file = CONFIG['INPUT_FILE']
+            logging.debug(f"Reading file: {input_file}")
+            df = pd.read_excel(input_file)
             
-            # If pattern ends with *.parquet, get all matching files in directory
-            if '*' in self.file_pattern:
-                directory = os.path.dirname(self.file_pattern)
-                paths = file_system_client.get_paths(path=directory)
-                files = [path.name for path in paths if path.name.endswith('.parquet')]
-            else:
-                # Single file case
-                files = [self.file_pattern]
+            # Convert all column names to lowercase
+            df.columns = df.columns.str.lower()
             
-            if not files:
-                raise ValueError(f"No Parquet files found matching {self.file_pattern}")
+            # Validate required columns
+            required_columns = ['tpid', 'crmaccountname']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            if missing_columns:
+                raise ValueError(f"Required columns missing from input file: {', '.join(missing_columns)}")
             
-            dfs = []
-            total_rows = 0
+            # Ensure websiteurl and country columns exist (optional fields)
+            if 'websiteurl' not in df.columns:
+                df['websiteurl'] = None
+                logging.warning("websiteurl column not found in input file")
+            if 'country' not in df.columns:
+                df['country'] = None
+                logging.warning("country column not found in input file")
             
-            for file_path in files:
-                logging.debug(f"Reading file: {file_path}")
-                file_client = file_system_client.get_file_client(file_path)
-                download = file_client.download_file()
-                df = pq.read_table(io.BytesIO(download.readall())).to_pandas()
+            # Clean data
+            df['tpid'] = df['tpid'].astype(str)
+            df['crmaccountname'] = df['crmaccountname'].fillna('')
+            df['websiteurl'] = df['websiteurl'].fillna('')
+            df['country'] = df['country'].fillna('')
+            
+            # Remove rows with missing required data
+            valid_rows = df['crmaccountname'].str.strip() != ''
+            if not valid_rows.all():
+                invalid_count = (~valid_rows).sum()
+                logging.warning(f"Removing {invalid_count} rows with missing company names")
+                df = df[valid_rows]
+            
+            # Convert filters to lowercase if provided
+            if filters:
+                filters = {k.lower(): v for k, v in filters.items()}
                 
-                # Apply filters if provided
-                if filters:
-                    for column, value in filters.items():
-                        if column not in df.columns:
-                            logging.warning(f"Filter column '{column}' not found")
-                            continue
-                            
-                        if isinstance(value, list):
-                            df = df[df[column].isin(value)]
-                        else:
-                            df = df[df[column] == value]
-                
-                dfs.append(df)
-                total_rows += len(df)
-                logging.debug(f"Read {len(df):,} rows from {file_path}")
-                
-                # Check if we've reached top_n
-                if top_n and total_rows >= top_n:
-                    # Trim the last dataframe if needed
-                    last_df = dfs[-1]
-                    rows_needed = top_n - (total_rows - len(last_df))
-                    dfs[-1] = last_df.head(rows_needed)
-                    break
+            # Apply filters if provided
+            if filters:
+                for column, value in filters.items():
+                    if column not in df.columns:
+                        logging.warning(f"Filter column '{column}' not found")
+                        continue
+                        
+                    if isinstance(value, list):
+                        df = df[df[column].isin(value)]
+                    else:
+                        df = df[df[column] == value]
             
-            # Combine all dataframes
-            final_df = pd.concat(dfs, ignore_index=True)
+            # Apply top_n limit if provided
+            if top_n:
+                df = df.head(top_n)
             
-            # Apply top_n limit if still needed (in case of filtering)
-            if top_n and len(final_df) > top_n:
-                final_df = final_df.head(top_n)
-            
-            logging.info(f"Retrieved {len(final_df):,} rows")
-            
-            return final_df
+            logging.info(f"Retrieved {len(df):,} rows")
+            return df
             
         except Exception as e:
             logging.error(f"Error getting data: {str(e)}")

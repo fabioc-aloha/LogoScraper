@@ -18,41 +18,48 @@ logging.basicConfig(
     format='%(message)s'  # Simplified format for cleaner output
 )
 
-# Hide authentication logs
-logging.getLogger('azure.identity').setLevel(logging.ERROR)
-logging.getLogger('azure.core.pipeline.policies').setLevel(logging.ERROR)
-
-# Configure pandas display
-pd.set_option('display.max_rows', None)
-pd.set_option('display.max_columns', None)
-pd.set_option('display.width', 160)
-pd.set_option('display.max_colwidth', 25)
-pd.set_option('display.show_dimensions', True)
-
-def format_df(df):
-    """Format dataframe for display"""
-    # Use display columns from config
-    cols = [col for col in CONFIG['DISPLAY_COLUMNS'] if col in df.columns]
-    preview = df[cols].copy()
-    
-    # Truncate long strings for better display
-    for col in preview.columns:
-        if preview[col].dtype == 'object':
-            preview[col] = preview[col].fillna('').astype(str).str.slice(0, 25)
-    
-    return preview
-
 if __name__ == "__main__":
     try:
         service = InputDataService()
-        print(f"Fetching data (top_n={CONFIG['TOP_N']}) with filters: {CONFIG['FILTERS']}")
-        df = service.get_data(filters=CONFIG['FILTERS'], top_n=CONFIG['TOP_N'])
+        df = service.get_data()
         
-        print(f"\nRetrieved {len(df):,} rows")
-        print("\nSample data (configured columns only):")
-        display_df = format_df(df)
-        print(display_df.to_string())
+        print("\nOriginal vs Lowercase Column Names:")
+        original_df = pd.read_excel(CONFIG['INPUT_FILE'])
+        print("Original columns:")
+        for col in original_df.columns:
+            print(f"  {col}")
         
+        print("\nAfter lowercase conversion:")
+        for col in df.columns:
+            print(f"  {col}")
+            
+        # Display sample values for key columns
+        key_columns = ['tpid', 'tpname', 'websiteurl']
+        print("\nSample values for key columns (first row):")
+        for col in key_columns:
+            if col in df.columns:
+                print(f"{col}: {df[col].iloc[0]}")
+            else:
+                print(f"{col}: Not found in file")
+                
+        # Display URL-related columns
+        print("\nAll URL-related columns:")
+        url_columns = [col for col in df.columns if 'url' in col.lower()]
+        for col in url_columns:
+            non_null = df[col].count()
+            total = len(df)
+            percentage = (non_null / total) * 100
+            print(f"{col}: {non_null}/{total} filled ({percentage:.1f}%)")
+            
+        # Display name-related columns
+        print("\nAll name-related columns:")
+        name_columns = [col for col in df.columns if 'name' in col.lower()]
+        for col in name_columns:
+            non_null = df[col].count()
+            total = len(df)
+            percentage = (non_null / total) * 100
+            print(f"{col}: {non_null}/{total} filled ({percentage:.1f}%)")
+            
     except Exception as e:
         logging.error(f"Error: {str(e)}")
         sys.exit(1)
