@@ -29,7 +29,10 @@ failed_domains_cache.json
 
 # Project specific directories
 temp/
-tests/
+# Include tests directory but ignore test artifacts
+tests/__pycache__/
+tests/*.log
+tests/temp/
 
 # OS specific
 .DS_Store
