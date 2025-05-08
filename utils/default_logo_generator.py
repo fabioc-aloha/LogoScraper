@@ -69,7 +69,7 @@ def create_default_logo(company_name):
 
         # Draw background
         background_color = get_background_color()
-        rounded_rectangle(draw, [0, 0, size, size], CONFIG['CORNER_RADIUS'], background_color)
+        draw.rectangle([0, 0, size, size], fill=background_color)
 
         # Calculate text area
         margin = int(size * 0.04)
