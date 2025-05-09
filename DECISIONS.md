@@ -45,8 +45,12 @@ The Company Logo Scraper efficiently acquires and standardizes company logos at 
 
 ### Pending Improvements
 - Additional plugin discovery mechanism
-- Comprehensive test suite (unit and integration tests)
 - Service health monitoring and performance dashboards
+
+### Test Suite
+- **Input Service Tests**: Validation of data filtering and column normalization
+- **Logo Generation Tests**: End-to-end validation of the generation pipeline
+- **Multilingual Text Tests**: Special test cases for challenging scripts and languages
 
 ## 2. Storage Structure
 
@@ -76,6 +80,11 @@ C:\Data\
 - Optimized font selection based on detected script
 - Improved text positioning and layout
 - Comprehensive international character rendering
+
+### Algorithm Details
+- **Script Detection**: Multi-phase analysis of Unicode character properties with special handling for Turkish, Korean, and mixed-script text
+- **Text Rendering**: Three-tiered fallback system with specialized handling for complex scripts
+- **Image Processing**: Aspect ratio preservation with centered positioning and anti-aliased LANCZOS resampling
 
 ### Recent Updates
 - Default logos now use square backgrounds (no rounded corners) and support up to 4-character initials for better handling of long company names
@@ -165,12 +174,14 @@ C:\Data\
 - **Command-line Options**: Flexible runtime configuration
 - **Validation**: Startup configuration verification
 - **Defaults**: Sensible preset values for all settings
+- **Documentation**: Comprehensive parameter descriptions with recommendations
 
 ### Features
 - Command-line argument support for all key settings
 - Robust argument parsing with detailed help text
 - Configuration parameter validation at startup
 - Progressive configuration override system
+- Performance optimization guidance for key parameters
 
 ## 10. Command-Line Interface
 

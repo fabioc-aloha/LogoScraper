@@ -41,7 +41,7 @@ def validate_and_load_image(image_data, output_path):
         # Check source image dimensions
         largest_dimension = max(img.width, img.height)
         if largest_dimension < CONFIG['MIN_SOURCE_SIZE']:
-            logging.error(f"Source image too small (largest dimension: {largest_dimension}px) for {output_path}")
+            logging.warning(f"Source image too small (largest dimension: {largest_dimension}px) for {output_path}")
             return None
             
         # Handle ICO format
@@ -50,7 +50,7 @@ def validate_and_load_image(image_data, output_path):
             if sizes:
                 largest_size = max(sizes, key=lambda t: t[0])
                 if largest_size[0] < CONFIG['MIN_SOURCE_SIZE']:
-                    logging.error(f"ICO image too small: {largest_size[0]}x{largest_size[0]}")
+                    logging.warning(f"ICO image too small: {largest_size[0]}x{largest_size[0]}")
                     return None
                 img.size = largest_size[0]
                 img.load()
@@ -76,7 +76,24 @@ def convert_to_rgb(img, output_path):
         return None
 
 def create_standardized_image(img, output_path):
-    """Create a standardized size image."""
+    """
+    Create a standardized size image with consistent dimensions and quality.
+    
+    This algorithm implements several key image processing techniques:
+    1. Aspect ratio preservation - Maintains the original image proportions
+    2. White background standardization - Ensures consistency across all outputs
+    3. Anti-aliased resizing - Uses LANCZOS resampling for highest quality downsampling
+    4. Centered positioning - Places the image in the center of the standardized canvas
+    5. Upscaling prevention - Rejects images requiring excessive upscaling (>8x) which
+       would result in poor quality outputs
+    
+    Args:
+        img: PIL Image object to standardize
+        output_path: Path where the image will be saved (for logging purposes)
+        
+    Returns:
+        PIL Image: A new standardized image, or None if processing failed
+    """
     try:
         # Create new image with white background
         new_img = Image.new('RGB', (CONFIG['OUTPUT_SIZE'], CONFIG['OUTPUT_SIZE']), 'white')

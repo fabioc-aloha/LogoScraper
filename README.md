@@ -189,6 +189,50 @@ This project includes a `DECISIONS.md` file that documents the architectural dec
 
 The `DECISIONS.md` file serves as both documentation for new contributors and as a record of the reasoning behind important design choices. If you're planning to extend or modify the code, reviewing this file is highly recommended.
 
+## Testing
+
+The project includes a comprehensive test suite to ensure reliability and correctness. Tests are organized in the `tests/` directory and cover both individual components and integration scenarios.
+
+### Running Tests
+
+To run the full test suite:
+
+```bash
+python -m unittest discover -s tests
+```
+
+To run specific test files:
+
+```bash
+python -m unittest tests.test_input_service
+python -m unittest tests.test_specific_logos
+```
+
+### Test Coverage
+
+The test suite covers the following key components:
+
+1. **Input Data Service Tests** (`test_input_service.py`)
+   - Data filtering and validation
+   - Excel file loading
+   - Column name normalization
+   - Error handling for malformed data
+
+2. **Logo Generation Tests** (`test_specific_logos.py`)
+   - End-to-end logo generation workflow
+   - Testing specific challenging company names
+   - Multilingual text rendering
+   - Image quality verification
+
+### Adding New Tests
+
+When adding new functionality, include appropriate tests that verify:
+- Correct behavior under normal conditions
+- Proper error handling for edge cases
+- Performance meets expectations for large-scale processing
+
+Tests should be isolated and not depend on external services when possible. Mock the external services for unit tests to avoid network dependencies.
+
 ## Contributing
 
 When contributing to this project:

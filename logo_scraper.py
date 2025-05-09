@@ -250,15 +250,22 @@ class LogoScraper:
         self._save_failed_domains()
         self.save_enriched_data()
         
-        # Log final summary
+        # Compute actual processed counts
         elapsed_time = time.time() - self.start_time
-        success_rate = (self.total_successful / self.total_companies) * 100 if self.total_companies > 0 else 0
-        
+        processed_count = self.total_successful + self.total_failed
+        success_rate = (self.total_successful / processed_count) * 100 if processed_count > 0 else 0
+
         logging.info("=" * 80)
         logging.info(f"LOGO SCRAPER COMPLETED AT {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         logging.info(f"Total time: {self._format_time(elapsed_time)}")
-        logging.info(f"Companies processed: {self.total_successful + self.total_failed}/{self.total_companies}")
-        logging.info(f"Success rate: {self.total_successful}/{self.total_companies} ({success_rate:.1f}%)")
+        logging.info(f"Companies processed: {processed_count}/{processed_count}")
+        logging.info(f"Success rate: {self.total_successful}/{processed_count} ({success_rate:.1f}%)")
+        # Final sources breakdown
+        if self.enriched_data:
+            all_df = pd.concat(self.enriched_data, ignore_index=True)
+            source_counts = all_df['LogoSource'].value_counts().to_dict()
+            summary = ", ".join(f"{src}: {cnt}" for src, cnt in source_counts.items())
+            logging.info(f"Final sources breakdown: {summary}")
         logging.info("=" * 80)
 
     def get_input_data(self):

@@ -1,1 +1,0 @@
-# This file is deprecated and removed: DuckDuckGo search integration is no longer used

@@ -48,11 +48,13 @@ class CompanyProcessor:
                 logging.info(f"[TPID {tpid}] Trying Clearbit API for domain: {domain}")
                 logo_data = self.clearbit_service.get_logo(domain)
                 if logo_data:
+                    output_path = os.path.join(self.output_folder, f"{tpid}.png")
                     enrichment_data = {
                         'DiscoveredURL': None,
                         'FinalDomain': domain,
                         'LogoSource': "Clearbit",
-                        'URLSource': 'Primary URL'
+                        'URLSource': 'Primary URL',
+                        'OutputPath': output_path
                     }
                     success = self._save_logo(logo_data, tpid, company_name)
                     if success:
@@ -65,11 +67,13 @@ class CompanyProcessor:
                 logging.info(f"[TPID {tpid}] Trying favicon service for domain: {domain}")
                 favicon_data = self.favicon_service.get_logo(domain)
                 if favicon_data:
+                    output_path = os.path.join(self.output_folder, f"{tpid}.png")
                     enrichment_data = {
                         'DiscoveredURL': None,
                         'FinalDomain': domain,
                         'LogoSource': 'Favicon',
-                        'URLSource': 'Favicon Service'
+                        'URLSource': 'Favicon Service',
+                        'OutputPath': output_path
                     }
                     success = self._save_logo(favicon_data, tpid, company_name)
                     if success:
@@ -91,6 +95,7 @@ class CompanyProcessor:
             logging.error(f"[TPID {tpid}] FAILED: Could not generate default logo for '{company_name}'")
             return self._fail_result("Default Logo Generation Failed")
             
+        output_path = os.path.join(self.output_folder, f"{tpid}.png")
         success = self._save_logo(logo_data, tpid, company_name)
         if success:
             logging.info(f"[TPID {tpid}] SUCCESS: Default logo generated for '{company_name}'")
@@ -98,7 +103,8 @@ class CompanyProcessor:
                 'DiscoveredURL': None,
                 'FinalDomain': None,
                 'LogoSource': source,
-                'URLSource': None
+                'URLSource': None,
+                'OutputPath': output_path
             }
             return True, source, enrichment_data
             

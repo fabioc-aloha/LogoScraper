@@ -14,77 +14,26 @@ from config import CONFIG
 # Define universal fonts that work well for multi-language support
 FONT_PRIORITIES = {
     'Windows': [
-        # Universal coverage fonts first
-        "arialuni.ttf",      # Arial Unicode MS (excellent universal coverage)
-        "seguisym.ttf",      # Segoe UI Symbol (good Unicode support)
-        
-        # Fonts with broad language support
-        "malgun.ttf",        # Malgun Gothic (Korean)
-        "meiryo.ttc",        # Meiryo (Japanese)
-        "msyh.ttf",          # Microsoft YaHei (Chinese)
-        "tahoma.ttf",        # Excellent for Latin, Cyrillic, Arabic, Thai, Vietnamese
-        "gulim.ttc",         # Good for Korean
-        "segoeui.ttf",       # Good multilingual support
-        "arial.ttf",         # Good for Latin, Cyrillic, Greek
-        "times.ttf",         # Times New Roman
-        "simsun.ttc",        # SimSun (Chinese)
-        "simhei.ttf",        # SimHei (Chinese)
-        "mingliu.ttc",       # MingLiu (Traditional Chinese)
-        "msgothic.ttc",      # MS Gothic (Japanese)
-        "batang.ttc",        # Batang (Korean)
-        "aparaj.ttf",        # Aparajita (Devanagari)
-        "nirmala.ttf",       # Nirmala UI (Indian scripts)
-        "ebrima.ttf",        # Ebrima (African scripts)
-        "gadugi.ttf",        # Gadugi (Cherokee and other American scripts)
-        "mvboli.ttf",        # MV Boli (Persian)
-        "sylfaen.ttf",       # Sylfaen (Armenian, Georgian)
-        "leelawad.ttf",      # Leelawadee (Thai)
-        "calibri.ttf",       # Calibri (good general support)
-        "cambria.ttc",       # Cambria (good general support)
-        "verdana.ttf",       # Verdana
-        "georgia.ttf",       # Georgia
+        'arial.ttf',  # Use built-in Arial as a guaranteed fallback for Latin scripts
+        "C:\\Windows\\Fonts\\NotoSans-Regular.otf",
+        "C:\\Windows\\Fonts\\NotoSerif-Regular.otf",
+        "C:\\Windows\\Fonts\\NotoColorEmoji.ttf",
     ],
     'Darwin': [  # macOS
-        "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
-        "/Library/Fonts/Arial Unicode.ttf",
-        "/System/Library/Fonts/PingFang.ttc",           # Chinese
-        "/System/Library/Fonts/Hiragino Sans GB.ttc",   # Chinese
-        "/System/Library/Fonts/AppleSDGothicNeo.ttc",   # Korean
-        "/System/Library/Fonts/HiraginoSans.ttc",       # Japanese
-        "/System/Library/Fonts/AppleGothic.ttf",        # Multilingual
-        "/System/Library/Fonts/STHeiti Light.ttc",      # Chinese
-        "/System/Library/Fonts/Menlo.ttc",              # Monospace multilingual
-        "/System/Library/Fonts/Thonburi.ttc",           # Thai
-        "/System/Library/Fonts/Kannada Sangam MN.ttc",  # Kannada
-        "/System/Library/Fonts/Gurmukhi MN.ttc",        # Gurmukhi
-        "/System/Library/Fonts/Khmer Sangam MN.ttc",    # Khmer
-        "/System/Library/Fonts/Arial.ttf",              # Good for Latin, Cyrillic
-        "/System/Library/Fonts/Times New Roman.ttf",    # Latin, Cyrillic support
-        "/System/Library/Fonts/Helvetica.ttc",
-        "/System/Library/Fonts/LucidaGrande.ttc"
+        "/Library/Fonts/NotoSans-Regular.otf",
+        "/Library/Fonts/NotoSerif-Regular.otf",
+        "/Library/Fonts/NotoColorEmoji.ttf",
+        "/Library/Fonts/NotoSansCJKJP-Regular.otf",
+        "/Library/Fonts/NotoSansCJKSC-Regular.otf",
+        "/Library/Fonts/NotoSansCJKKR-Regular.otf",
     ],
     'Linux': [
-        # Universal coverage fonts
-        "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
-        "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSans-Regular.ttf",
+        "/usr/share/fonts/opentype/noto/NotoSerif-Regular.ttf",
+        "/usr/share/fonts/truetype/noto/NotoSansCJKJP-Regular.otf",
+        "/usr/share/fonts/truetype/noto/NotoSansCJKSC-Regular.otf",
+        "/usr/share/fonts/truetype/noto/NotoSansCJKKR-Regular.otf",
         "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf",
-        
-        # Language specific fonts
-        "/usr/share/fonts/truetype/noto/NotoSansArabic-Regular.ttf",
-        "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf",
-        "/usr/share/fonts/truetype/noto/NotoSansHebrew-Regular.ttf",
-        "/usr/share/fonts/truetype/noto/NotoSansThai-Regular.ttf",
-        "/usr/share/fonts/truetype/noto/NotoSansTibetan-Regular.ttf",
-        "/usr/share/fonts/truetype/noto/NotoSansArmenian-Regular.ttf",
-        "/usr/share/fonts/truetype/noto/NotoSansGeorgian-Regular.ttf",
-        "/usr/share/fonts/truetype/noto/NotoSansKhmer-Regular.ttf",
-        "/usr/share/fonts/truetype/noto/NotoSansMyanmar-Regular.ttf",
-        
-        # Fallbacks
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf",
-        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
-        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
     ]
 }
 
@@ -186,7 +135,20 @@ def get_system_font_directory():
 def detect_script(text):
     """
     Detect the dominant script used in a text to optimize font selection.
-    Returns: 'cyrillic', 'cjk', 'latin', 'arabic', 'devanagari', 'thai', 'hebrew', 'greek', 'turkish', 'korean', or 'other'
+    
+    This function analyzes each character in the input text to determine which writing
+    system/script it belongs to, keeping track of the frequency of each script. It then
+    determines the dominant script based on both absolute and relative frequencies.
+    
+    Key considerations in this algorithm:
+    1. Special handling for Turkish characters due to their rendering challenges
+    2. Korean script is processed separately from other CJK scripts due to its unique characteristics
+    3. We apply a threshold-based approach (>20% non-Latin or >60% Latin) to handle mixed-script text
+    4. Whitespace and punctuation are ignored to focus on meaningful characters
+    
+    Returns: 
+        str: The detected script - one of: 'cyrillic', 'cjk', 'latin', 'arabic', 
+             'devanagari', 'thai', 'hebrew', 'greek', 'turkish', 'korean', or 'other'
     """
     if not text:
         return 'latin'
@@ -301,16 +263,8 @@ def get_font(size, try_fonts=None):
             logging.debug(f"Could not load font {font_name}: {str(e)}")
             continue
     
-    # As a last resort, try to use system default fonts through PIL
-    try:
-        default_font = ImageFont.load_default()
-        logging.warning("Using PIL default font; some characters may not render correctly")
-        return default_font
-    except Exception as e:
-        logging.error(f"Failed to load any usable font: {str(e)}")
-        
-    # Ultimate fallback - try to create a basic font
-    logging.error("No suitable font found for text rendering")
+    # No font could be loaded; report error
+    logging.error("No suitable TrueType font found; please install required fonts or adjust FONT_PRIORITIES")
     return None
 
 def get_script_specific_font(script, size):
@@ -499,7 +453,26 @@ def draw_centered_text(draw, text, font, width, height):
                 draw.text((10, height/2), text, font=font, fill='white')
 
 def draw_multiline_text(draw, lines, font, width, height):
-    """Draw multiple lines of text with proper spacing and centering, with a slight upward adjustment."""
+    """
+    Draw multiple lines of text with proper spacing and centering, with a slight upward adjustment.
+    
+    This algorithm handles multilingual text rendering with the following optimizations:
+    1. Dynamic line height calculation - Each line's height is calculated individually to account
+       for different character heights in various scripts
+    2. Vertical adjustment (7% upward) - Text is shifted slightly upward because visually centered
+       text often appears too low due to human perception
+    3. Proportional line spacing - Space between lines is 15% of line height, which has been found
+       to provide optimal readability across all writing systems
+    4. Multiple fallback mechanisms - Three levels of fallbacks ensure text renders even with
+       incomplete font support or older PIL versions
+    
+    Args:
+        draw: PIL ImageDraw object
+        lines: List of text strings to render
+        font: PIL Font object
+        width: Full width of the image
+        height: Full height of the image
+    """
     try:
         # Calculate heights
         line_heights = []

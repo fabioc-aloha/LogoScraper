@@ -29,6 +29,12 @@ def setup_logging(temp_folder, log_filename='logo_scraper.log'):
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
     
+    # Filter out warning-level messages from console output
+    class IgnoreWarningFilter(logging.Filter):
+        def filter(self, record):
+            return record.levelno != logging.WARNING
+    console_handler.addFilter(IgnoreWarningFilter())
+    
     # Configure root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(CONFIG.get('LOG_LEVEL', 'INFO'))

@@ -16,17 +16,17 @@ from utils.text_renderer import (
 )
 from config import CONFIG
 
-def rounded_rectangle(draw, xy, radius, fill):
-    """Draw a rounded rectangle."""
-    x1, y1, x2, y2 = xy
-    # Draw main rectangle
-    draw.rectangle([x1+radius, y1, x2-radius, y2], fill=fill)
-    draw.rectangle([x1, y1+radius, x2, y2-radius], fill=fill)
-    # Draw corners
-    draw.pieslice([x1, y1, x1+radius*2, y1+radius*2], 180, 270, fill=fill)
-    draw.pieslice([x2-radius*2, y1, x2, y1+radius*2], 270, 360, fill=fill)
-    draw.pieslice([x1, y2-radius*2, x1+radius*2, y2], 90, 180, fill=fill)
-    draw.pieslice([x2-radius*2, y2-radius*2, x2, y2], 0, 90, fill=fill)
+# def rounded_rectangle(draw, xy, radius, fill):
+#     """Draw a rounded rectangle."""
+#     x1, y1, x2, y2 = xy
+#     # Draw main rectangle
+#     draw.rectangle([x1+radius, y1, x2-radius, y2], fill=fill)
+#     draw.rectangle([x1, y1+radius, x2, y2-radius], fill=fill)
+#     # Draw corners
+#     draw.pieslice([x1, y1, x1+radius*2, y1+radius*2], 180, 270, fill=fill)
+#     draw.pieslice([x2-radius*2, y1, x2, y1+radius*2], 270, 360, fill=fill)
+#     draw.pieslice([x1, y2-radius*2, x1+radius*2, y2], 90, 180, fill=fill)
+#     draw.pieslice([x2-radius*2, y2-radius*2, x2, y2], 0, 90, fill=fill)
 
 def get_background_color():
     """Get a professional background color."""
@@ -43,6 +43,10 @@ def get_background_color():
         (19, 106, 138),    # Ocean Blue
     ]
     return random.choice(colors)
+
+def has_wide_chars(text):
+    """Check if text contains any fullwidth or wide characters"""
+    return any(unicodedata.east_asian_width(c) in ('W','F') for c in text)
 
 def create_default_logo(company_name):
     """Create a default logo for a company using their name."""
@@ -88,8 +92,9 @@ def create_default_logo(company_name):
             # Need multiple lines or abbreviation
             words = company_name.split()
             
-            # For scripts that don't use spaces (like CJK), split by characters
-            if script in ['cjk', 'korean', 'chinese', 'japanese', 'thai'] or len(words) <= 1:
+            # For scripts that don't use spaces (like CJK) or mixed double-byte chars, split by characters
+            mixed_wide = has_wide_chars(company_name)
+            if script in ['cjk', 'korean', 'chinese', 'japanese', 'thai'] or len(words) <= 1 or mixed_wide:
                 chars = list(company_name)
                 
                 # Determine optimal characters per line based on total length

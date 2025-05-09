@@ -8,10 +8,15 @@ import os
 import logging
 import time
 from multiprocessing import Pool
+import signal
 import pandas as pd
 from utils.company_processor import CompanyProcessor
 from utils.enrichment import enrich_batch_results
 from config import CONFIG
+
+def init_worker():
+    # Ignore SIGINT in child processes to allow graceful shutdown from main process
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 def process_company_wrapper(args):
     """Wrapper function for processing a single company in parallel."""
@@ -65,7 +70,7 @@ def process_batch(companies_df, output_folder, temp_folder, num_processes=None, 
         logging.info(f"Batch {batch_idx}/{total_batches}: Processing started at {time.strftime('%Y-%m-%d %H:%M:%S')}")
         
         # Launch worker pool
-        with Pool(processes=num_processes) as pool:
+        with Pool(processes=num_processes, initializer=init_worker) as pool:
             try:
                 results = pool.map(process_company_wrapper, process_args)
             except KeyboardInterrupt:

@@ -5,7 +5,21 @@ This module provides configuration validation functionality.
 
 import os
 import logging
+import sys
 from typing import List, Dict
+
+# Add parent directory to sys.path to allow importing config
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+try:
+    from config import CONFIG  # Import the configuration
+except ImportError:
+    # Fallback for when run as a script
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("config", 
+                                                 os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.py')))
+    config_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(config_module)
+    CONFIG = config_module.CONFIG
 
 class ConfigValidator:
     """Validates configuration settings."""
@@ -89,8 +103,8 @@ class ConfigValidator:
             'REQUEST_TIMEOUT': int,
             'BATCH_SIZE': int,
             'LOG_LEVEL': str,
-            'LOG_FORMAT': str,
-            'CORNER_RADIUS': int
+            'LOG_FORMAT': str
+            # 'CORNER_RADIUS': int
         }
         
         for field, expected_type in required_fields.items():
@@ -111,3 +125,45 @@ class ConfigValidator:
             'errors': self.errors,
             'warnings': self.warnings
         }
+
+def main():
+    """Main entry point for configuration validation.
+    
+    This function demonstrates how to use the ConfigValidator class
+    and can be run directly to validate the current configuration.
+    """
+    # Set up basic logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+    
+    # Create validator instance with current configuration
+    validator = ConfigValidator(CONFIG)
+    
+    # Run validation
+    is_valid = validator.validate()
+    
+    # Get detailed status
+    status = validator.get_status()
+    
+    # Print results
+    if is_valid:
+        logging.info("Configuration validation successful")
+    else:
+        logging.error("Configuration validation failed")
+        
+    if status['warnings']:
+        logging.info("Warnings found:")
+        for warning in status['warnings']:
+            logging.warning(f"- {warning}")
+            
+    if status['errors']:
+        logging.info("Errors found:")
+        for error in status['errors']:
+            logging.error(f"- {error}")
+    
+    return is_valid
+
+if __name__ == '__main__':
+    main()
