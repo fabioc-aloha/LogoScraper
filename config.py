@@ -26,7 +26,7 @@ CONFIG = {
                         # Determines memory usage and CPU utilization. For systems with 16GB RAM,
                         # values between 100-500 are optimal. Larger values may cause memory pressure.
                         
-    'OUTPUT_FOLDER': os.path.join(BASE_DATA_DIR, 'logo256Managed'),  # Directory where processed logos are saved
+    'OUTPUT_FOLDER': os.path.join(BASE_DATA_DIR, 'logo'),  # Directory where processed logos are saved
                                                            # Will be created if it doesn't exist
                                                            
     'TEMP_FOLDER': os.path.join(PROJECT_ROOT, 'temp'),  # Directory for temporary files during processing
@@ -79,14 +79,6 @@ CONFIG = {
     },
     # These column groupings help organize the data and enable filtering via command-line options
     # Column names are case-insensitive and will be normalized during processing
-
-    # Default Filtering Configuration
-    'filters': {
-        'parentinglevel': 'Top Parent',  # Only process main company entities, not subsidiaries
-        'status': 'Active'               # Skip inactive/closed companies
-    },
-    # These filters are applied by default but can be overridden via command-line
-    # Multiple filters combine with AND logic (all must match)
     
     # Uncomment to limit processing to a subset of rows (useful for testing)
     # 'TOP_N': 2000,  # Process only the first N companies from the input file

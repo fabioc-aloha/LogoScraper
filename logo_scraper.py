@@ -10,6 +10,8 @@ Main Features:
 - Supports cleaning temporary files and resuming interrupted runs.
 - Logs detailed progress, statistics, and errors to a log file.
 - Exports enriched results to a timestamped Excel file with summary statistics.
+- Robust domain cleaning: handles malformed/invalid domains, strips unwanted characters, and supports multiple delimiters.
+- Enhanced diagnostics: detailed logging for logo fetch failures, including HTTP status and response content for Clearbit.
 
 Command-line Arguments:
   --input, -i         Path to the input Excel file (overrides config)
@@ -128,7 +130,18 @@ def update_config_from_args(args):
         CONFIG['tpid_filter'] = args.tpid
 
 class LogoScraper:
-    """A class to manage the logo scraping and processing pipeline."""
+    """
+    Manages the company logo scraping and processing pipeline.
+
+    Features:
+    - Batch processing of company data with parallelism and progress tracking.
+    - Robust domain cleaning: handles malformed/invalid domains, strips unwanted characters, and supports multiple delimiters.
+    - Enhanced diagnostics: detailed logging for logo fetch failures, including HTTP status and response content for Clearbit.
+    - Tracks completed and failed companies to avoid redundant work.
+    - Exports enriched results to Excel with summary statistics.
+    - Supports cleaning temporary files and resuming interrupted runs.
+    - Configurable via command-line arguments and config file.
+    """
     
     def __init__(self, output_folder=CONFIG['OUTPUT_FOLDER'], batch_size=CONFIG['BATCH_SIZE']):
         """Initialize the LogoScraper with output directory and batch size."""

@@ -14,6 +14,21 @@ A robust Python utility for downloading, standardizing, and tracking company log
 - Temporary file management and cleaning
 - Multilingual support for company names
 
+## Domain Cleaning Logic
+The logo scraper uses a robust domain cleaning function to maximize the number of valid domains processed:
+- Removes anything after '@' (e.g., user@domain.com → domain.com)
+- Splits on common delimiters (commas, semicolons, slashes, backslashes, whitespace, etc.) and uses only the first valid part
+- Removes unwanted characters: quotes, angle brackets, parentheses, brackets, etc.
+- Strips common prefixes like `www.`
+- Removes leading/trailing dots and hyphens
+- Handles multiple domains in a single field, using only the first valid one
+
+This ensures that only truly invalid domains are skipped, improving logo fetch rates and reducing errors.
+
+## Diagnostics & Logging
+- All logo fetch failures (especially from Clearbit) are logged with HTTP status codes and response content for easier troubleshooting.
+- The log file (`logo_scraper.log`) provides detailed progress, error, and summary information for each run.
+
 ## Workflow Overview
 
 1. **Parse command-line arguments** and update configuration.

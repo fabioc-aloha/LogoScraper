@@ -21,12 +21,15 @@ class ClearbitService:
     def get_logo(self, domain):
         """Fetch a company logo from the Clearbit Logo API."""
         if not domain:
+            logging.warning("ClearbitService: No domain provided.")
             return None
         try:
             url = f"{CONFIG['CLEARBIT_BASE_URL']}/{domain}?size={self.target_size}"
             response = self.session_manager.get(url)
             if response.status_code == 200:
                 return response.content
+            else:
+                logging.warning(f"ClearbitService: Non-200 response for {domain} (status {response.status_code}). Response content: {response.content[:200]}")
         except Exception as e:
             logging.error(f"Clearbit logo service error for {domain}: {str(e)}")
         return None
