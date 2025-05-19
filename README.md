@@ -1,5 +1,72 @@
 # Company Logo Scraper
 
+A robust Python utility for downloading, standardizing, and tracking company logos from various sources. The tool supports batch processing, progress tracking, resumable operation, and enriched data export, making it suitable for large-scale, reliable logo collection.
+
+## Key Features
+
+- Downloads company logos from multiple sources (Clearbit, favicon, or generates default logos)
+- Batch processing with configurable size and parallelism
+- Progress tracking and resume capability (avoids reprocessing completed/failed companies)
+- Command-line interface for flexible configuration
+- Filtering by column values or specific TPIDs
+- Enriched data export with logo source statistics
+- Detailed logging and error handling
+- Temporary file management and cleaning
+- Multilingual support for company names
+
+## Workflow Overview
+
+1. **Parse command-line arguments** and update configuration.
+2. **Optionally clean** temporary files before starting.
+3. **Initialize** the LogoScraper, validate configuration, and set up logging.
+4. **Load and filter input data**, excluding already processed companies.
+5. **Process companies in batches**, updating progress and saving enriched results.
+6. **Export enriched data** to a timestamped Excel file with summary statistics.
+7. **On completion or interruption**, save state and output summary statistics.
+
+## Command-Line Arguments
+
+- `--input`, `-i`: Path to the input Excel file (overrides config)
+- `--output`, `-o`: Output directory for logos (overrides config)
+- `--temp`, `-t`: Temporary directory for processing (overrides config)
+- `--batch-size`, `-b`: Number of companies per batch (overrides config)
+- `--log-level`, `-l`: Logging level (DEBUG, INFO, etc.)
+- `--max-processes`, `-p`: Maximum parallel processes (overrides config)
+- `--top`, `-n`: Process only the first N companies
+- `--clean`, `-c`: Clean temporary files before starting
+- `--filter`, `-f`: Add a filter in format "column=value" (can be used multiple times)
+- `--tpid`: Process only the specified TPID(s) (can be used multiple times)
+
+Run `python logo_scraper.py --help` for a full list and details.
+
+## Outputs
+
+- PNG logos in the output directory (e.g., `logos/{TPID}.png`)
+- Processing logs in `logo_scraper.log`
+- Progress tracking in `download_progress.json`
+- Enriched data Excel file with results and logo source summary (timestamped)
+
+## Resumable Operation & Cleaning
+
+- The script tracks completed and failed companies, so interrupted runs can be resumed without duplicating work.
+- Use `--clean` to clear temporary files before starting a new run.
+- The script will prompt to clean temp files if leftovers are detected.
+
+## Example Usage
+
+```bash
+python logo_scraper.py --input "input/Companies.xlsx" --output "logos" --batch-size 100 --max-processes 8 --filter "country=US" --tpid 12345 --clean
+```
+
+## See Also
+- `DECISIONS.md` for architectural decisions
+- `LEARNINGS.md` for project learnings and notes
+- `config.py` for configuration options
+
+---
+
+# Company Logo Scraper
+
 A streamlined Python utility that downloads and standardizes company logos from various sources, with built-in fallbacks and parallel processing capabilities.
 
 ## Key Features

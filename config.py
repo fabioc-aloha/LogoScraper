@@ -14,11 +14,11 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 CONFIG = {
     # Output and Processing
-    'OUTPUT_SIZE': 512,  # Target size (width and height) in pixels for all processed logos
+    'OUTPUT_SIZE': 256,  # Target size (width and height) in pixels for all processed logos
                          # Recommended range: 256-1024. Values below 256 may result in poor text readability.
                          # Values above 1024 significantly increase storage requirements without proportional quality gains.
                          
-    'MIN_SOURCE_SIZE': 60,  # Minimum source image dimension in pixels
+    'MIN_SOURCE_SIZE': 32,  # Minimum source image dimension in pixels
                             # This filters out very small source images that would produce poor quality results.
                             # Values below 40 may allow low-quality images; above 100 may reject too many valid sources.
                             
@@ -26,7 +26,7 @@ CONFIG = {
                         # Determines memory usage and CPU utilization. For systems with 16GB RAM,
                         # values between 100-500 are optimal. Larger values may cause memory pressure.
                         
-    'OUTPUT_FOLDER': os.path.join(BASE_DATA_DIR, 'logo'),  # Directory where processed logos are saved
+    'OUTPUT_FOLDER': os.path.join(BASE_DATA_DIR, 'logo256Managed'),  # Directory where processed logos are saved
                                                            # Will be created if it doesn't exist
                                                            
     'TEMP_FOLDER': os.path.join(PROJECT_ROOT, 'temp'),  # Directory for temporary files during processing

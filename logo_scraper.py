@@ -1,7 +1,37 @@
 """Company Logo Scraper
 
-This module provides functionality to automatically download and standardize company logos
-from various sources. It coordinates the overall process flow and orchestration.
+This script automates the process of downloading, standardizing, and tracking company logos from various sources. It supports batch processing, filtering, progress tracking, and enriched data export. The script is configurable via command-line arguments and a config file, and is designed for robust, resumable operation.
+
+Main Features:
+- Reads company data from an Excel file, with optional filters and TPID selection.
+- Processes companies in batches with parallelism and progress tracking.
+- Downloads and standardizes logos, saving results and enriched metadata.
+- Tracks completed and failed companies to avoid redundant work.
+- Supports cleaning temporary files and resuming interrupted runs.
+- Logs detailed progress, statistics, and errors to a log file.
+- Exports enriched results to a timestamped Excel file with summary statistics.
+
+Command-line Arguments:
+  --input, -i         Path to the input Excel file (overrides config)
+  --output, -o        Output directory for logos (overrides config)
+  --temp, -t          Temporary directory for processing (overrides config)
+  --batch-size, -b    Number of companies per batch (overrides config)
+  --log-level, -l     Logging level (DEBUG, INFO, etc.)
+  --max-processes, -p Maximum parallel processes (overrides config)
+  --top, -n           Process only the first N companies
+  --clean, -c         Clean temporary files before starting
+  --filter, -f        Add a filter in format "column=value" (can be used multiple times)
+  --tpid              Process only the specified TPID(s) (can be used multiple times)
+
+Workflow:
+1. Parses command-line arguments and updates configuration.
+2. Optionally cleans temporary files.
+3. Initializes the LogoScraper, validates configuration, and sets up logging.
+4. Loads and filters input data, excluding already processed companies.
+5. Processes companies in batches, updating progress and saving enriched results.
+6. On completion or interruption, saves state and outputs summary statistics.
+
+See README.md for more details and usage examples.
 """
 
 import os
