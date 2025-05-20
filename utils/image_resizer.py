@@ -1,6 +1,10 @@
 """Image Resizing Module
 
 This module handles image resizing and standardization functionality.
+
+Recent changes:
+- The minimum source size check now requires at least one dimension (width or height) to be >= MIN_SOURCE_SIZE, not both.
+- The upscaling ratio limit has been removed; upscaling is only limited by the configured output dimensions.
 """
 
 import logging
@@ -55,6 +59,7 @@ def validate_and_load_image(image_data, output_path):
     """
     Validate and load the image data.
     Raises InvalidImageDataError or ImageTooSmallError on failure.
+    At least one dimension (width or height) must be >= MIN_SOURCE_SIZE.
     """
     try:
         img = Image.open(BytesIO(image_data))
@@ -65,45 +70,34 @@ def validate_and_load_image(image_data, output_path):
         raise InvalidImageDataError(f"Invalid image data for {output_path}: {str(e)}") from e
 
     # Check source image dimensions
-    largest_dimension = max(img.width, img.height)
     min_source_size = CONFIG.get('MIN_SOURCE_SIZE', 50) # Default if not in config
-    if largest_dimension < min_source_size:
+    if img.width < min_source_size and img.height < min_source_size:
         raise ImageTooSmallError(
             f"Source image for {output_path} is too small ({img.width}x{img.height}). "
-            f"Largest dimension {largest_dimension}px < minimum {min_source_size}px."
+            f"Both width and height are below minimum {min_source_size}px."
         )
-            
+        
     # Handle ICO format specifically for size checks
     if img.format == 'ICO':
         # For ICO, Pillow loads the best available size by default with img.load()
         # We re-check the loaded image's size.
-        if img.width < min_source_size or img.height < min_source_size:
-            # Try to find a larger size if available in the ICO file entries
+        if img.width < min_source_size and img.height < min_source_size:
             try:
-                # img.getdata() might be needed to access all frames/sizes in some PIL versions
-                # but Pillow usually loads the largest by default.
-                # Accessing private _ico attribute is not ideal but sometimes necessary for ICO details
                 if hasattr(img, '_ico'):
                     sizes = img._ico.sizes()
                     if sizes:
                         largest_ico_size = max(sizes, key=lambda t: t[0])
-                        if largest_ico_size[0] >= min_source_size and largest_ico_size[1] >= min_source_size:
-                            # If a larger suitable size exists, try to load it.
-                            # This part is tricky as Pillow's default load should pick the best.
-                            # If it hasn't, direct reloading of a specific size is complex.
-                            # For now, we rely on the initial load and check its dimensions.
-                            # If the initially loaded ICO frame is too small, we raise error.
-                            pass # Keep img as is, if default load was good enough
+                        if largest_ico_size[0] >= min_source_size or largest_ico_size[1] >= min_source_size:
+                            pass # Acceptable size exists
                         else:
-                             raise ImageTooSmallError(
+                            raise ImageTooSmallError(
                                 f"ICO image {output_path} best size ({img.width}x{img.height}) is below minimum {min_source_size}px. "
                                 f"Largest internal ICO size also too small: {largest_ico_size[0]}x{largest_ico_size[1]}px."
                             )
             except Exception as e:
                 logging.debug(f"Could not further interrogate ICO sizes for {output_path}: {e}")
-                # Stick with the initially loaded image check
-                if img.width < min_source_size or img.height < min_source_size:
-                     raise ImageTooSmallError(
+                if img.width < min_source_size and img.height < min_source_size:
+                    raise ImageTooSmallError(
                         f"ICO image {output_path} ({img.width}x{img.height}) is below minimum {min_source_size}px after initial load."
                     )
     return img
@@ -131,12 +125,11 @@ def create_standardized_image(img, output_path):
     Create a standardized size image with consistent dimensions and quality.
     
     This algorithm implements several key image processing techniques:
-    1. Aspect ratio preservation - Maintains the original image proportions
-    2. White background standardization - Ensures consistency across all outputs
-    3. Anti-aliased resizing - Uses LANCZOS resampling for highest quality downsampling
-    4. Centered positioning - Places the image in the center of the standardized canvas
-    5. Upscaling prevention - Rejects images requiring excessive upscaling (>8x) which
-       would result in poor quality outputs
+    - Aspect ratio preservation - Maintains the original image proportions
+    - White background standardization - Ensures consistency across all outputs
+    - Anti-aliased resizing - Uses LANCZOS resampling for highest quality downsampling
+    - Centered positioning - Places the image in the center of the standardized canvas
+    - Upscaling prevention - (Removed: now upscaling is only limited by configured dimensions)
     
     Args:
         img: PIL Image object to standardize.
@@ -145,11 +138,9 @@ def create_standardized_image(img, output_path):
     Returns:
         PIL Image: A new standardized image.
     Raises:
-        ImageResizingError: If processing failed, e.g., due to excessive upscaling or Pillow errors.
+        ImageResizingError: If processing failed, e.g., due to Pillow errors.
     """
     output_size = CONFIG.get('OUTPUT_SIZE', 256) # Default if not in config
-    max_upscaling_ratio = CONFIG.get('MAX_UPSCALING_RATIO', 8) # Default if not in config
-
     try:
         # Create new image with white background
         new_img = Image.new('RGB', (output_size, output_size), (255, 255, 255))
@@ -159,13 +150,7 @@ def create_standardized_image(img, output_path):
         new_width = int(img.width * ratio)
         new_height = int(img.height * ratio)
         
-        # Prevent excessive upscaling
-        if ratio > max_upscaling_ratio:
-            raise ImageResizingError(
-                f"Image {output_path} requires too much upscaling ({ratio:.1f}x). "
-                f"Original: {img.width}x{img.height}, Target: {new_width}x{new_height} for {output_size}x{output_size} canvas."
-            )
-            
+        # Remove upscaling ratio check: allow any upscaling as per user config
         # Resize and center image using high-quality downsampling
         resized_img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
         

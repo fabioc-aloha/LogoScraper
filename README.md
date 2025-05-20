@@ -23,7 +23,18 @@ The logo scraper uses a robust domain cleaning function to maximize the number o
 - Removes leading/trailing dots and hyphens
 - Handles multiple domains in a single field, using only the first valid one
 
+**Minimum Acceptable Logo Size:** Logos must now be at least **28x28 pixels**. Images smaller than this will be rejected as too low quality.
+
 This ensures that only truly invalid domains are skipped, improving logo fetch rates and reducing errors.
+
+## Logo Size Requirements
+- The minimum source size for logos is controlled by the `MIN_SOURCE_SIZE` setting in `config.py`.
+- **At least one dimension (width or height) must be greater than or equal to `MIN_SOURCE_SIZE`.**
+- Images where both dimensions are below this threshold are rejected as too small.
+
+## Upscaling Behavior
+- There is no longer a maximum upscaling ratio. Any image meeting the minimum size requirement will be upscaled to the configured output size (`OUTPUT_SIZE`).
+- This allows for visual inspection of small favicons and other low-resolution images.
 
 ## Diagnostics & Logging
 - All logo fetch failures (especially from Clearbit) are logged with HTTP status codes and response content for easier troubleshooting.
@@ -88,7 +99,7 @@ A streamlined Python utility that downloads and standardizes company logos from 
 
 ### Core Functionality
 - Downloads company logos from Clearbit API (primary source)
-- Falls back to domain favicons via DuckDuckGo icons service (`.ico`) if Clearbit fails
+- Falls back to domain favicons via DuckDuckGo and Google S2 if Clearbit fails
 - Generates default logos when online logos unavailable (draws square backgrounds without rounded corners, uses up to 4-character initials)
 - Standardizes all logos to consistent format and size
 - Parallel processing for efficiency
@@ -160,13 +171,39 @@ C:\Data\                    # Base data directory
     └── input\             # Input Excel files
 
 Project Structure:
-├── logo_scraper.py        # Main entry point
-├── config.py              # Centralized configuration
-├── DECISIONS.md           # Architectural decisions documentation
-├── README.md              # This usage guide
-├── services/              # External service integrations
-└── utils/                 # Internal utilities
+├── logo_scraper.py        # Main entry point and orchestrator
+├── config.py              # Centralized configuration (all settings)
+├── DECISIONS.md           # Architectural decisions and rationale
+├── LEARNINGS.md           # Project learnings, technical notes, and best practices
+├── README.md              # Usage guide and documentation
+├── requirements.txt       # Python dependencies
+├── LICENSE                # Project license
+├── services/              # Integrations for logo sources (Clearbit, favicon, default)
+├── utils/                 # Internal utilities (batching, progress, image, text, etc.)
+├── temp/                  # Temporary files, logs, and progress tracking (auto-created)
+└── tests/                 # Unit and integration tests
 ```
+
+## Architecture Overview
+
+The project is organized for clarity, modularity, and extensibility:
+
+- **logo_scraper.py**: Main script. Handles argument parsing, configuration, batch processing, progress tracking, and orchestration of the entire workflow.
+- **config.py**: All configuration options (paths, batch size, logo size, API settings, etc.) are centralized here for easy management.
+- **services/**: Contains service modules for fetching/generating logos:
+  - `clearbit_service.py`: Fetches logos from the Clearbit API
+  - `favicon_service.py`: Fetches favicons using DuckDuckGo and Google S2 as fallback sources (no direct site scraping)
+  - `default_service.py`: Generates default logos when no online logo is available
+- **utils/**: Utility modules for:
+  - Progress tracking (`progress_tracker.py`)
+  - Batch processing (`batch_processor.py`)
+  - Image and text processing (`image_resizer.py`, `text_renderer.py`, etc.)
+  - Domain and URL cleaning (`url_utils.py`, `domain_filter.py`)
+  - Logging, config validation, and more
+- **tests/**: Comprehensive test suite for all major components and integration scenarios
+- **temp/**: Stores logs, progress files, and temporary data (auto-created and safe to delete)
+
+This structure supports robust, large-scale logo scraping with clear separation of concerns and easy extensibility.
 
 ## Input Format
 

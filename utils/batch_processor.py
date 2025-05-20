@@ -1,7 +1,12 @@
 """Batch Processing Module
 
-This module handles the parallel processing of company batches.
-Simplified to focus on core parallel processing functionality.
+This module handles the parallel processing of company batches for logo scraping.
+
+Functions:
+- process_batch: Processes a batch of companies in parallel, manages worker pool, aggregates results, and logs batch statistics.
+- process_company_wrapper: Wrapper for processing a single company, used by multiprocessing.
+
+Batch processing enables efficient, large-scale logo retrieval with robust error handling and progress reporting.
 """
 
 import os

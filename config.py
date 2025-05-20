@@ -18,9 +18,10 @@ CONFIG = {
                          # Recommended range: 256-1024. Values below 256 may result in poor text readability.
                          # Values above 1024 significantly increase storage requirements without proportional quality gains.
                          
-    'MIN_SOURCE_SIZE': 32,  # Minimum source image dimension in pixels
+    'MIN_SOURCE_SIZE': 16,  # Minimum source image dimension in pixels
+                            # At least one dimension (width or height) must be >= this value.
                             # This filters out very small source images that would produce poor quality results.
-                            # Values below 40 may allow low-quality images; above 100 may reject too many valid sources.
+                            # Values below 24 may allow low-quality images; above 100 may reject too many valid sources.
                             
     'BATCH_SIZE': 300,  # Number of companies to process in each parallel batch
                         # Determines memory usage and CPU utilization. For systems with 16GB RAM,

@@ -1,7 +1,12 @@
 """Progress Tracking Module
 
 This module provides functionality for tracking and persisting the progress of
-logo processing operations. Simplified to focus on core tracking functionality.
+logo processing operations. It supports resuming interrupted runs and avoids redundant work.
+
+Classes:
+- ProgressTracker: Tracks completed and failed companies, persists progress to disk, and can initialize from existing logo files.
+
+Progress is stored in a JSON file in the temp directory and is updated after each company is processed.
 """
 
 import json

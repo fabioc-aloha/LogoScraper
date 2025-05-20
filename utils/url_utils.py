@@ -1,6 +1,12 @@
 """URL Processing Utilities
 
 This module provides utility functions for processing and normalizing URLs and domain names.
+
+Functions:
+- clean_domain(domain): Cleans and normalizes a domain string, handling unwanted characters, delimiters, prefixes, and edge cases.
+- get_domain_from_url(url_or_domain): Extracts and cleans the domain from a URL or domain string, robust to malformed or email-like input.
+
+These utilities are used throughout the logo scraping pipeline to ensure only valid, clean domains are used for logo retrieval.
 """
 
 import logging

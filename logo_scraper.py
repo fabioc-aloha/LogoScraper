@@ -143,12 +143,19 @@ class LogoScraper:
     - Configurable via command-line arguments and config file.
     """
     
-    def __init__(self, output_folder=CONFIG['OUTPUT_FOLDER'], batch_size=CONFIG['BATCH_SIZE']):
+    def __init__(self, batch_size=CONFIG['BATCH_SIZE']):
         """Initialize the LogoScraper with output directory and batch size."""
         self.start_time = time.time()
-        self.output_folder = output_folder
+        self.output_folder = CONFIG['OUTPUT_FOLDER']
         self.temp_folder = CONFIG['TEMP_FOLDER']
         self.batch_size = batch_size
+
+        # Remove the entire temp folder at initialization for a clean state
+        if os.path.exists(self.temp_folder):
+            try:
+                shutil.rmtree(self.temp_folder)
+            except Exception as e:
+                print(f"Warning: Failed to remove temp folder {self.temp_folder}: {e}")
         
         self._setup_directories_and_logging()
         self._validate_config_and_load_cache()
@@ -298,16 +305,48 @@ class LogoScraper:
         logging.info(f"Logo source summary: {summary_str}")
 
     def cleanup(self):
-        """Clean up resources and save final state."""
+        """Clean up resources and save final state. Also generate logo provenance stats."""
         self._save_failed_domains_cache()
         self.save_enriched_data()
-        
+        self._generate_logo_provenance_stats()
         elapsed_time = time.time() - self.start_time
-        # Use session-specific counts for the final summary of this run
         processed_in_session = self.total_successful + self.total_failed
         success_rate_session = (self.total_successful / processed_in_session) * 100 if processed_in_session > 0 else 0
-        
         self._log_completion_summary(elapsed_time, processed_in_session, success_rate_session)
+
+    def _generate_logo_provenance_stats(self):
+        """Analyze enriched data and log stats on logo provenance (source breakdown and favicon provider details)."""
+        if not self.enriched_data:
+            logging.info("No enriched data to analyze for logo provenance stats.")
+            return
+        import pandas as pd
+        all_df = pd.concat(self.enriched_data, ignore_index=True)
+        if 'LogoSource' not in all_df.columns:
+            logging.info("No LogoSource column found in enriched data for provenance stats.")
+            return
+        source_counts = all_df['LogoSource'].value_counts().to_dict()
+        total = sum(source_counts.values())
+        logging.info("Logo Provenance Stats (source breakdown):")
+        for source, count in source_counts.items():
+            percent = (count / total) * 100 if total > 0 else 0
+            logging.info(f"  {source}: {count} ({percent:.1f}%)")
+        logging.info(f"  Total: {total}")
+        # --- Enhanced favicon provider stats ---
+        favicon_rows = all_df[all_df['LogoSource'].str.contains('DuckDuckGo|Google S2', na=False)]
+        if not favicon_rows.empty:
+            provider_stats = favicon_rows['LogoSource'].str.extract(r'(DuckDuckGo|Google S2)')
+            favicon_rows = favicon_rows.assign(FaviconProvider=provider_stats[0])
+            provider_counts = favicon_rows['FaviconProvider'].value_counts().to_dict()
+            logging.info("Favicon Provider Breakdown (largest logo chosen):")
+            for provider, count in provider_counts.items():
+                logging.info(f"  {provider}: {count}")
+            # If logo size is available, report average size per provider
+            if 'LogoSize' in favicon_rows.columns:
+                avg_sizes = favicon_rows.groupby('FaviconProvider')['LogoSize'].mean().to_dict()
+                for provider, avg_size in avg_sizes.items():
+                    logging.info(f"  {provider} average logo size: {avg_size:.1f} bytes")
+        else:
+            logging.info("No favicon provider logos found in enriched data.")
 
     def _log_completion_summary(self, elapsed_time, processed_count, success_rate):
         """Logs the final summary of the scraping process for the current session."""
@@ -441,6 +480,7 @@ class LogoScraper:
     
     def clean_temporary_data(self, force_clean=False):
         """Cleans temporary files and folders."""
+        import logging
         temp_folder_path = self.temp_folder # Use instance variable
         
         user_confirmed_clean = force_clean
@@ -456,12 +496,23 @@ class LogoScraper:
 
         if user_confirmed_clean:
             logging.info(f"Cleaning temporary folder: {temp_folder_path}")
+            # Shutdown logging to release file handles before deleting log files
+            try:
+                logging.shutdown()
+                # Remove all handlers from the root logger to ensure file handles are released (especially on Windows)
+                import logging as _logging
+                for handler in list(_logging.getLogger().handlers):
+                    _logging.getLogger().removeHandler(handler)
+            except Exception:
+                pass
             for item in os.listdir(temp_folder_path):
                 path = os.path.join(temp_folder_path, item)
                 try:
+                    # Only remove files that are not .png (logo outputs)
                     if os.path.isfile(path) or os.path.islink(path):
-                        os.remove(path)
-                        logging.debug(f"Removed temporary file: {path}")
+                        if not path.lower().endswith('.png'):
+                            os.remove(path)
+                            logging.debug(f"Removed temporary file: {path}")
                     elif os.path.isdir(path):
                         shutil.rmtree(path)
                         logging.debug(f"Removed temporary directory: {path}")
@@ -483,8 +534,6 @@ def main():
     try:
         # Instantiate scraper first to use its methods, including logging setup within __init__
         scraper = LogoScraper(
-            output_folder=CONFIG['OUTPUT_FOLDER'],
-            batch_size=CONFIG['BATCH_SIZE']
         )
         
         # Perform cleaning using the scraper's method
@@ -500,6 +549,12 @@ def main():
     finally:
         if scraper:
             scraper.cleanup()
+        # Ensure logging is shutdown at the end of the script
+        import logging
+        try:
+            logging.shutdown()
+        except Exception:
+            pass
 
 if __name__ == "__main__":
     main()

@@ -1,10 +1,16 @@
 """Clearbit Logo Service Integration
 
 This module provides integration with the Clearbit Logo API for fetching company logos.
-It includes rate limiting and error handling.
+It includes rate limiting, error handling, and session management.
+
+Classes:
+- ClearbitService: Fetches logos from Clearbit, handles HTTP errors, and manages API rate limits.
+
+This service is the primary online source for company logos in the scraping pipeline.
 """
 
 import logging
+import requests
 from utils.rate_limiter import rate_limit
 from utils.session_manager import SessionManager
 from config import CONFIG
@@ -29,9 +35,20 @@ class ClearbitService:
             if response.status_code == 200:
                 return response.content
             else:
-                logging.warning(f"ClearbitService: Non-200 response for {domain} (status {response.status_code}). Response content: {response.content[:200]}")
+                # Move expected failures to info
+                if response.status_code in (403, 404):
+                    logging.info(f"ClearbitService: Non-200 response for {domain} (status {response.status_code})")
+                else:
+                    logging.warning(f"ClearbitService: Unexpected non-200 response for {domain} (status {response.status_code})")
+        except requests.exceptions.Timeout:
+            logging.info(f"ClearbitService: Timeout for {domain}")
+            return None
+        except requests.exceptions.ConnectionError:
+            logging.info(f"ClearbitService: Connection error for {domain}")
+            return None
         except Exception as e:
-            logging.error(f"Clearbit logo service error for {domain}: {str(e)}")
+            logging.error(f"ClearbitService: Unexpected error for {domain}: {e}")
+            return None
         return None
         
     def close(self):

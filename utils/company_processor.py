@@ -2,6 +2,11 @@
 
 This module orchestrates the logo acquisition process for individual companies
 using specialized modules for URL discovery, logo retrieval, and image processing.
+
+Classes:
+- CompanyProcessor: Handles the end-to-end process of obtaining, saving, and enriching a logo for a single company, including fallbacks and error handling.
+
+This module is called by the batch processor and is central to the logo scraping workflow.
 """
 
 import logging
@@ -65,19 +70,20 @@ class CompanyProcessor:
                 
                 # Fallback to favicon service
                 logging.info(f"[TPID {tpid}] Trying favicon service for domain: {domain}")
-                favicon_data = self.favicon_service.get_logo(domain)
+                favicon_data, favicon_provider, favicon_size = self.favicon_service.get_logo(domain)
                 if favicon_data:
                     output_path = os.path.join(self.output_folder, f"{tpid}.png")
                     enrichment_data = {
                         'DiscoveredURL': None,
                         'FinalDomain': domain,
-                        'LogoSource': 'Favicon',
+                        'LogoSource': favicon_provider if favicon_provider else 'Favicon',
+                        'LogoSize': favicon_size if favicon_size else None,
                         'URLSource': 'Favicon Service',
                         'OutputPath': output_path
                     }
                     success = self._save_logo(favicon_data, tpid, company_name)
                     if success:
-                        logging.info(f"[TPID {tpid}] SUCCESS: Logo for '{company_name}' fetched via Favicon service")
+                        logging.info(f"[TPID {tpid}] SUCCESS: Logo for '{company_name}' fetched via Favicon service ({favicon_provider})")
                         return True, enrichment_data['LogoSource'], enrichment_data
                 else:
                     logging.info(f"[TPID {tpid}] Favicon service failed for '{company_name}' with domain {domain}")
@@ -167,21 +173,22 @@ class CompanyProcessor:
                         # Fall through to Favicon if Clearbit saving failed
                 
                 logging.info(f"[TPID {tpid}] Trying favicon service for domain: {domain}")
-                favicon_data = self.favicon_service.get_logo(domain)
+                favicon_data, favicon_provider, favicon_size = self.favicon_service.get_logo(domain)
                 if favicon_data:
                     output_path = os.path.join(self.output_folder, f"{tpid}.png")
                     enrichment_data = {
                         'TPID': tpid,
                         'DiscoveredURL': None, # Or the URL used by favicon service if available
                         'FinalDomain': domain,
-                        'LogoSource': 'Favicon',
+                        'LogoSource': favicon_provider if favicon_provider else 'Favicon',
+                        'LogoSize': favicon_size if favicon_size else None,
                         'URLSource': 'Favicon Service',
                         'OutputPath': output_path,
                         'ErrorMessage': None
                     }
                     success = self._save_logo(favicon_data, tpid, company_name, enrichment_data)
                     if success:
-                        logging.info(f"[TPID {tpid}] SUCCESS: Logo for '{company_name}' fetched via Favicon service")
+                        logging.info(f"[TPID {tpid}] SUCCESS: Logo for '{company_name}' fetched via Favicon service ({favicon_provider})")
                         return True, enrichment_data['LogoSource'], enrichment_data
                     else: # _save_logo failed
                         logging.warning(f"[TPID {tpid}] Favicon logo saving failed for '{company_name}': {enrichment_data.get('ErrorMessage')}")

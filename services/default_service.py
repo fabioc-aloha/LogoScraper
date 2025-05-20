@@ -1,7 +1,12 @@
 """Default Logo Generation Service
 
 This module provides functionality to generate default logos when no suitable logo
-can be found online. Simplified to focus on core functionality.
+can be found online. It is the final fallback in the logo scraping pipeline.
+
+Classes:
+- DefaultService: Generates a default logo image using the company name.
+
+This ensures every company can have a logo, even if no online image is available.
 """
 
 import logging
