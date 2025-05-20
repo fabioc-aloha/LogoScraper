@@ -150,30 +150,11 @@ class LogoScraper:
         self.temp_folder = CONFIG['TEMP_FOLDER']
         self.batch_size = batch_size
         
-        # Create required directories
-        os.makedirs(output_folder, exist_ok=True)
-        os.makedirs(self.temp_folder, exist_ok=True)
-        
-        # Set up logging
-        setup_logging(self.temp_folder, CONFIG['LOG_FILENAME'])
-        
-        # Log initial startup information
-        logging.info("=" * 80)
-        logging.info(f"LOGO SCRAPER STARTED AT {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        logging.info(f"Output folder: {output_folder}")
-        logging.info(f"Batch size: {batch_size}")
-        logging.info(f"Target logo size: {CONFIG['OUTPUT_SIZE']}x{CONFIG['OUTPUT_SIZE']} pixels")
-        logging.info("=" * 80)
-        
-        # Validate configuration
-        validator = ConfigValidator(CONFIG)
-        if not validator.validate():
-            logging.error("Invalid configuration, exiting")
-            sys.exit(1)
+        self._setup_directories_and_logging()
+        self._validate_config_and_load_cache()
         
         # Initialize components
         self.enriched_data = []
-        self.failed_domains = self._load_failed_domains()
         self.progress = ProgressTracker(
             temp_folder=self.temp_folder,
             logos_folder=self.output_folder
@@ -182,7 +163,29 @@ class LogoScraper:
         self.total_successful = 0
         self.total_failed = 0
 
-    def _load_failed_domains(self):
+    def _setup_directories_and_logging(self):
+        """Create required directories and set up logging."""
+        os.makedirs(self.output_folder, exist_ok=True)
+        os.makedirs(self.temp_folder, exist_ok=True)
+        
+        setup_logging(self.temp_folder, CONFIG['LOG_FILENAME'])
+        
+        logging.info("=" * 80)
+        logging.info(f"LOGO SCRAPER STARTED AT {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        logging.info(f"Output folder: {self.output_folder}")
+        logging.info(f"Batch size: {self.batch_size}")
+        logging.info(f"Target logo size: {CONFIG['OUTPUT_SIZE']}x{CONFIG['OUTPUT_SIZE']} pixels")
+        logging.info("=" * 80)
+
+    def _validate_config_and_load_cache(self):
+        """Validate configuration and load failed domains cache."""
+        validator = ConfigValidator(CONFIG)
+        if not validator.validate():
+            logging.error("Invalid configuration, exiting")
+            sys.exit(1)
+        self.failed_domains = self._load_failed_domains_cache()
+
+    def _load_failed_domains_cache(self):
         """Load the cache of failed domains from disk."""
         cache_file = os.path.join(self.temp_folder, CONFIG['FAILED_DOMAINS_CACHE_FILE'])
         if os.path.exists(cache_file):
@@ -193,10 +196,9 @@ class LogoScraper:
                     return domains
             except Exception as e:
                 logging.error(f"Error loading failed domains cache: {str(e)}")
-                return set()
         return set()
 
-    def _save_failed_domains(self):
+    def _save_failed_domains_cache(self):
         """Save the cache of failed domains to disk."""
         cache_file = os.path.join(self.temp_folder, CONFIG['FAILED_DOMAINS_CACHE_FILE'])
         try:
@@ -222,34 +224,41 @@ class LogoScraper:
         self.total_failed += (total - successful)
         self.enriched_data.append(enriched_df)
         
-        # Update overall progress statistics
-        overall_percent = ((batch_idx * self.batch_size) / self.total_companies) * 100
-        if overall_percent > 100:
-            overall_percent = 100
-            
-        success_rate = (self.total_successful / (self.total_successful + self.total_failed)) * 100 if (self.total_successful + self.total_failed) > 0 else 0
-        
-        # Calculate elapsed time and estimated time remaining
-        elapsed_time = time.time() - self.start_time
-        elapsed_str = self._format_time(elapsed_time)
-        
-        if batch_idx < total_batches:
-            # Estimate time remaining based on current progress
-            completed_fraction = batch_idx / total_batches
-            if completed_fraction > 0:
-                total_estimated_time = elapsed_time / completed_fraction
-                remaining_time = total_estimated_time - elapsed_time
-                remaining_str = self._format_time(remaining_time)
-            else:
-                remaining_str = "Unknown"
-        else:
-            remaining_str = "Complete"
-            
-        logging.info(f"Progress Summary: {batch_idx}/{total_batches} batches ({overall_percent:.1f}%) | " +
-                     f"Success rate: {success_rate:.1f}% | " +
-                     f"Elapsed: {elapsed_str} | Remaining: {remaining_str}")
+        self._log_batch_progress_summary(batch_idx, total_batches)
         
         return successful, total, enriched_df
+
+    def _log_batch_progress_summary(self, batch_idx, total_batches):
+        """Logs the progress summary after each batch."""
+        overall_processed_count = batch_idx * self.batch_size 
+        overall_processed_count = min(overall_processed_count, self.total_companies) # Cap at total_companies
+
+        overall_percent = (overall_processed_count / self.total_companies) * 100 if self.total_companies > 0 else 0
+        overall_percent = min(overall_percent, 100.0) # Cap at 100%
+            
+        current_processed_in_session = self.total_successful + self.total_failed
+        success_rate = (self.total_successful / current_processed_in_session) * 100 if current_processed_in_session > 0 else 0
+        
+        elapsed_time = time.time() - self.start_time
+        
+        # Estimate time remaining
+        if batch_idx < total_batches and current_processed_in_session > 0:
+            # Use items processed in this session for ETA if more accurate
+            items_per_second_session = current_processed_in_session / elapsed_time
+            remaining_items = self.total_companies - overall_processed_count
+            if items_per_second_session > 0:
+                remaining_time_seconds = remaining_items / items_per_second_session
+                remaining_str = self._format_time(remaining_time_seconds)
+            else:
+                remaining_str = "Calculating..."
+        elif batch_idx == total_batches:
+            remaining_str = "Complete"
+        else:
+            remaining_str = "Calculating..."
+
+        logging.info(f"Progress Summary: Batch {batch_idx}/{total_batches} ({overall_percent:.1f}%) | " +
+                     f"Session Success: {success_rate:.1f}% ({self.total_successful}/{current_processed_in_session}) | " +
+                     f"Elapsed: {self._format_time(elapsed_time)} | ETA: {remaining_str}")
 
     def _format_time(self, seconds):
         """Format time in seconds to a human-readable string."""
@@ -290,160 +299,201 @@ class LogoScraper:
 
     def cleanup(self):
         """Clean up resources and save final state."""
-        self._save_failed_domains()
+        self._save_failed_domains_cache()
         self.save_enriched_data()
         
-        # Compute actual processed counts
         elapsed_time = time.time() - self.start_time
-        processed_count = self.total_successful + self.total_failed
-        success_rate = (self.total_successful / processed_count) * 100 if processed_count > 0 else 0
+        # Use session-specific counts for the final summary of this run
+        processed_in_session = self.total_successful + self.total_failed
+        success_rate_session = (self.total_successful / processed_in_session) * 100 if processed_in_session > 0 else 0
+        
+        self._log_completion_summary(elapsed_time, processed_in_session, success_rate_session)
 
+    def _log_completion_summary(self, elapsed_time, processed_count, success_rate):
+        """Logs the final summary of the scraping process for the current session."""
         logging.info("=" * 80)
-        logging.info(f"LOGO SCRAPER COMPLETED AT {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        logging.info(f"Total time: {self._format_time(elapsed_time)}")
-        logging.info(f"Companies processed: {processed_count}/{processed_count}")
-        logging.info(f"Success rate: {self.total_successful}/{processed_count} ({success_rate:.1f}%)")
-        # Final sources breakdown
+        logging.info(f"LOGO SCRAPER SESSION COMPLETED AT {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        logging.info(f"Total session time: {self._format_time(elapsed_time)}")
+        logging.info(f"Companies processed in this session: {processed_count}")
+        logging.info(f"Success rate for this session: {self.total_successful}/{processed_count} ({success_rate:.1f}%)")
+        
         if self.enriched_data:
-            all_df = pd.concat(self.enriched_data, ignore_index=True)
-            source_counts = all_df['LogoSource'].value_counts().to_dict()
-            summary = ", ".join(f"{src}: {cnt}" for src, cnt in source_counts.items())
-            logging.info(f"Final sources breakdown: {summary}")
+            # Consolidate all enriched data for final source breakdown
+            all_session_df = pd.concat(self.enriched_data, ignore_index=True)
+            if not all_session_df.empty:
+                source_counts = all_session_df['LogoSource'].value_counts().to_dict()
+                summary = ", ".join(f"{src}: {cnt}" for src, cnt in source_counts.items())
+                logging.info(f"Sources for logos processed in this session: {summary}")
         logging.info("=" * 80)
 
     def get_input_data(self):
-        """Get input data from the Excel file."""
+        """Loads, filters, and prepares input data from the Excel file."""
         input_file = CONFIG['INPUT_FILE']
         logging.info(f"Reading input data from: {input_file}")
         
-        # Use input data service for consistent data handling
         input_service = InputDataService()
         df = input_service.get_data(
             filters=CONFIG.get('filters'),
             top_n=CONFIG.get('TOP_N')
         )
         
-        # Apply TPID filter if specified
+        df = self._apply_tpid_filter(df)
+        self._log_input_data_stats(df)
+        return df
+
+    def _apply_tpid_filter(self, df):
+        """Applies TPID filter if specified in config."""
         if 'tpid_filter' in CONFIG and CONFIG['tpid_filter']:
             tpids = CONFIG['tpid_filter']
             logging.info(f"Filtering to specific TPIDs: {', '.join(tpids)}")
+            original_count = len(df)
             df = df[df['tpid'].astype(str).isin(tpids)]
+            logging.info(f"Filtered {original_count} companies down to {len(df)} based on TPID list.")
             if len(df) == 0:
-                logging.error(f"No companies found with the specified TPIDs")
+                logging.error(f"No companies found with the specified TPIDs. Exiting.")
                 sys.exit(1)
             elif len(df) < len(tpids):
                 found_tpids = df['tpid'].astype(str).tolist()
                 missing = [tpid for tpid in tpids if tpid not in found_tpids]
-                logging.warning(f"Could not find these TPIDs: {', '.join(missing)}")
-        
-        # Log some statistics about the input data
+                logging.warning(f"Could not find data for these TPIDs: {', '.join(missing)}")
+        return df
+
+    def _log_input_data_stats(self, df):
+        """Logs statistics about the loaded input data."""
         companies_with_urls = df['websiteurl'].notna() & (df['websiteurl'] != '')
         url_count = companies_with_urls.sum()
         url_percentage = (url_count / len(df)) * 100 if len(df) > 0 else 0
         
-        logging.info(f"Successfully read {len(df):,} companies from input file")
+        logging.info(f"Successfully read and filtered {len(df):,} companies from input file")
         logging.info(f"Companies with website URLs: {url_count:,} ({url_percentage:.1f}%)")
-        
-        return df
 
-    def process_companies(self):
-        """Process all unprocessed companies."""
-        # Get and filter input data
-        df = self.get_input_data()
-        self.total_companies = len(df)
-        logging.info(f"Total companies after filtering: {self.total_companies:,}")
-        
-        # Filter out already processed companies
+    def _filter_unprocessed_companies(self, df):
+        """Filters out already processed companies."""
         df['tpid'] = df['tpid'].astype(str)
         already_completed = self.progress.progress['completed']
         already_failed = self.progress.progress['failed']
         
-        logging.info(f"Previously processed: {len(already_completed):,} completed, {len(already_failed):,} failed")
+        logging.info(f"Previously processed: {len(already_completed):,} completed, {len(already_failed):,} failed (will be skipped)")
         
         unprocessed_df = df[~df['tpid'].isin(already_completed + already_failed)]
         
         num_unprocessed = len(unprocessed_df)
         if num_unprocessed == 0:
-            logging.info("No new companies to process")
-            return
+            logging.info("No new companies to process from the filtered input.")
+            return pd.DataFrame() # Return empty DataFrame
             
-        logging.info(f"Found {num_unprocessed:,} unprocessed companies")
+        logging.info(f"Found {num_unprocessed:,} companies to process in this session.")
+        return unprocessed_df
+
+    def process_companies(self):
+        """Main loop to process all companies."""
+        input_df = self.get_input_data()
         
-        # Process in batches
-        total_batches = (num_unprocessed + self.batch_size - 1) // self.batch_size
-        logging.info(f"Will process in {total_batches} batches of {self.batch_size} companies each")
+        # This total_companies refers to the total from the input file after initial filters (top_n, column filters, tpid_filter)
+        # It's used for overall progress calculation relative to the initial dataset.
+        self.total_companies = len(input_df) 
+        logging.info(f"Total companies after initial loading and filtering: {self.total_companies:,}")
+
+        unprocessed_df = self._filter_unprocessed_companies(input_df)
         
-        for start_idx in range(0, num_unprocessed, self.batch_size):
+        num_to_process_this_session = len(unprocessed_df)
+        if num_to_process_this_session == 0:
+            return # Already logged in _filter_unprocessed_companies
+
+        total_batches = (num_to_process_this_session + self.batch_size - 1) // self.batch_size
+        logging.info(f"Will process {num_to_process_this_session:,} companies in {total_batches} batches of up to {self.batch_size} each.")
+        
+        for start_idx in range(0, num_to_process_this_session, self.batch_size):
             batch_num = (start_idx // self.batch_size) + 1
-            end_idx = min(start_idx + self.batch_size, num_unprocessed)
+            end_idx = min(start_idx + self.batch_size, num_to_process_this_session)
             batch_df = unprocessed_df.iloc[start_idx:end_idx]
             
-            successful, total, enriched_df = self.process_batch(batch_df, batch_num, total_batches)
+            successful_in_batch, total_in_batch, enriched_df_batch = self.process_batch(batch_df, batch_num, total_batches)
             
-            # Update completed and failed lists in the progress tracker
-            batch_tpids = batch_df['tpid'].tolist()
-            batch_results = enriched_df['LogoGenerated'].tolist()
+            # Update progress tracker based on batch results
+            if not enriched_df_batch.empty:
+                batch_tpids = enriched_df_batch['TPID'].tolist() # Assuming TPID is a column after processing
+                batch_results = enriched_df_batch['LogoGenerated'].tolist()
             
-            for tpid, success in zip(batch_tpids, batch_results):
-                if success:
-                    self.progress.mark_completed(tpid)
-                else:
-                    self.progress.mark_failed(tpid)
+                for tpid, success in zip(batch_tpids, batch_results):
+                    if success:
+                        self.progress.mark_completed(str(tpid))
+                    else:
+                        self.progress.mark_failed(str(tpid))
             
-            # Log batch completion
-            source_counts = enriched_df['LogoSource'].value_counts().to_dict()
-            overall_completed = len(self.progress.progress['completed'])
-            overall_failed = len(self.progress.progress['failed'])
-            overall_progress = (overall_completed + overall_failed) / self.total_companies * 100
+            # Log batch completion details
+            source_counts_batch = enriched_df_batch['LogoSource'].value_counts().to_dict() if not enriched_df_batch.empty else {}
             
-            logging.info(
-                f"Batch {batch_num}/{total_batches} complete: {successful}/{total} successful | "
-                f"Source breakdown: {source_counts} | "
-                f"Overall: {overall_completed + overall_failed}/{self.total_companies} "
-                f"({overall_progress:.1f}%)"
-            )
+            # Overall progress stats refers to the total number of companies in the input file.
+            # This gives a sense of how much of the *entire dataset* is done.
+            overall_completed_count = len(self.progress.progress['completed'])
+            overall_failed_count = len(self.progress.progress['failed'])
+            total_ever_processed = overall_completed_count + overall_failed_count
+            overall_dataset_progress_percent = (total_ever_processed / self.total_companies) * 100 if self.total_companies > 0 else 0
+            overall_dataset_progress_percent = min(overall_dataset_progress_percent, 100.0)
 
-def main():
-    """Main entry point for the logo scraper."""
-    # Parse command line arguments
-    args = parse_arguments()
+
+            logging.info(
+                f"Batch {batch_num}/{total_batches} complete: {successful_in_batch}/{total_in_batch} successful. "
+                f"Sources: {source_counts_batch}. "
+                f"Overall dataset processed: {total_ever_processed}/{self.total_companies} ({overall_dataset_progress_percent:.1f}%)"
+            )
     
-    # Update config with command line arguments
-    update_config_from_args(args)
-    
-    scraper = None
-    # Handle temp file cleaning if requested via command line or prompt
-    temp_folder = CONFIG['TEMP_FOLDER']
-    clean_temp = args.clean
-    
-    try:
-        if not clean_temp and os.path.exists(temp_folder) and os.listdir(temp_folder):
-            resp = input(f"Temporary files detected in {temp_folder}. Clear them? [y/N]: ")
-            clean_temp = resp.strip().lower() == 'y'
-            
-        if clean_temp:
-            for item in os.listdir(temp_folder):
-                path = os.path.join(temp_folder, item)
+    def clean_temporary_data(self, force_clean=False):
+        """Cleans temporary files and folders."""
+        temp_folder_path = self.temp_folder # Use instance variable
+        
+        user_confirmed_clean = force_clean
+        if not user_confirmed_clean and os.path.exists(temp_folder_path) and os.listdir(temp_folder_path):
+            try:
+                resp = input(f"Temporary files detected in {temp_folder_path}. Clear them? [y/N]: ")
+                if resp.strip().lower() == 'y':
+                    user_confirmed_clean = True
+            except EOFError: # Handle non-interactive environments
+                 logging.warning("No input available for temp cleaning prompt, defaulting to not cleaning.")
+                 user_confirmed_clean = False
+
+
+        if user_confirmed_clean:
+            logging.info(f"Cleaning temporary folder: {temp_folder_path}")
+            for item in os.listdir(temp_folder_path):
+                path = os.path.join(temp_folder_path, item)
                 try:
                     if os.path.isfile(path) or os.path.islink(path):
                         os.remove(path)
+                        logging.debug(f"Removed temporary file: {path}")
                     elif os.path.isdir(path):
                         shutil.rmtree(path)
+                        logging.debug(f"Removed temporary directory: {path}")
                 except Exception as e:
-                    print(f"Failed to remove {path}: {e}")
-            print("Temporary folder cleared.")
-    except KeyboardInterrupt:
-        print("Startup interrupted by user")
-        return
-        
+                    logging.error(f"Failed to remove {path}: {e}")
+            # Recreate the temp folder as it's expected to exist by other parts of the code
+            os.makedirs(temp_folder_path, exist_ok=True)
+            logging.info("Temporary folder cleared and recreated.")
+        else:
+            logging.info("Temporary data cleaning skipped.")
+
+
+def main():
+    """Main entry point for the logo scraper."""
+    args = parse_arguments()
+    update_config_from_args(args)
+    
+    scraper = None
     try:
+        # Instantiate scraper first to use its methods, including logging setup within __init__
         scraper = LogoScraper(
             output_folder=CONFIG['OUTPUT_FOLDER'],
             batch_size=CONFIG['BATCH_SIZE']
         )
+        
+        # Perform cleaning using the scraper's method
+        scraper.clean_temporary_data(force_clean=args.clean)
+        
         scraper.process_companies()
+        
     except KeyboardInterrupt:
-        logging.info("Process interrupted by user")
+        logging.info("Process interrupted by user.")
     except Exception as e:
         logging.error(f"Error in main process: {str(e)}")
         raise
