@@ -23,14 +23,15 @@ The logo scraper uses a robust domain cleaning function to maximize the number o
 - Removes leading/trailing dots and hyphens
 - Handles multiple domains in a single field, using only the first valid one
 
-**Minimum Acceptable Logo Size:** Logos must now be at least **28x28 pixels**. Images smaller than this will be rejected as too low quality.
+**Minimum Acceptable Logo Size:** Logos must now be at least **24x24 pixels** by default (configurable). Images smaller than this will be rejected as too low quality.
 
 This ensures that only truly invalid domains are skipped, improving logo fetch rates and reducing errors.
 
 ## Logo Size Requirements
-- The minimum source size for logos is controlled by the `MIN_SOURCE_SIZE` setting in `config.py`.
+- The minimum source size for logos is controlled by the `MIN_SOURCE_SIZE` setting in `config.py` (default: 24).
 - **At least one dimension (width or height) must be greater than or equal to `MIN_SOURCE_SIZE`.**
 - Images where both dimensions are below this threshold are rejected as too small.
+- You can change this minimum in `config.py` as needed.
 
 ## Upscaling Behavior
 - There is no longer a maximum upscaling ratio. Any image meeting the minimum size requirement will be upscaled to the configured output size (`OUTPUT_SIZE`).
@@ -150,11 +151,11 @@ Core Dependencies:
 Configuration is centralized in `config.py` for simplicity:
 
 ### Core Settings
-- `OUTPUT_SIZE`: Logo dimensions (default: 256×256)
-- `MIN_SOURCE_SIZE`: Minimum source image size (default: 60px)
-- `BATCH_SIZE`: Parallel processing batch size (default: 300)
-- `MAX_RETRIES`: Maximum number of retry attempts (default: 3)
-- `RETRY_DELAY`: Base delay between retries in seconds (default: 1.0)
+- `OUTPUT_SIZE`: Logo dimensions (default: 256×256, configurable)
+- `MIN_SOURCE_SIZE`: Minimum source image size (default: 24px, configurable)
+- `BATCH_SIZE`: Parallel processing batch size (default: 300, configurable)
+- `MAX_RETRIES`: Maximum number of retry attempts (default: 3, configurable)
+- `RETRY_DELAY`: Base delay between retries in seconds (default: 1.0, configurable)
 
 ### Service Settings
 - Rate limits and timeouts
@@ -165,8 +166,8 @@ Configuration is centralized in `config.py` for simplicity:
 ## Directory Structure
 
 ```
-C:\Data\                    # Base data directory
-    ├── logos\             # Processed company logos
+C:\Data\                   # Base data directory
+    ├── logo\              # Processed company logos
     ├── temp\              # Temporary processing files
     └── input\             # Input Excel files
 
@@ -264,7 +265,7 @@ python logo_scraper.py --log-level DEBUG
 
 ## Outputs
 
-- PNG logos in `C:\Data\logos\{TPID}.png`
+- PNG logos in `C:\Data\logo\{TPID}.png` (default output folder, configurable in `config.py`)
 - Processing logs in `logo_scraper.log`
 - Progress tracking in `download_progress.json`
 - Enriched data Excel file with results
