@@ -17,13 +17,13 @@ def apply_filters(df):
     Returns:
         pandas.DataFrame: Filtered DataFrame
     """
-    if not CONFIG.get('FILTERS'):
+    if not CONFIG.get('filters'):
         return df
         
     filtered_df = df.copy()
     
     # Ensure all filter keys are lowercase to match DataFrame columns
-    filters = {k.lower(): v for k, v in CONFIG['FILTERS'].items()}
+    filters = {k.lower(): v for k, v in CONFIG['filters'].items()}
     
     # Convert relevant columns to string type
     for column in filters.keys():
