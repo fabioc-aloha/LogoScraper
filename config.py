@@ -26,7 +26,7 @@ CONFIG = {
                         # Determines memory usage and CPU utilization. For systems with 16GB RAM,
                         # values between 100-500 are optimal. Larger values may cause memory pressure.
                         
-    'OUTPUT_FOLDER': os.path.join(BASE_DATA_DIR, 'logo'),  # Directory where processed logos are saved
+    'OUTPUT_FOLDER': os.path.join(BASE_DATA_DIR, 'logos'),  # Directory where processed logos are saved
                                                            # Will be created if it doesn't exist
                                                            
     'TEMP_FOLDER': os.path.join(PROJECT_ROOT, 'temp'),  # Directory for temporary files during processing
