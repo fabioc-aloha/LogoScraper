@@ -139,7 +139,7 @@ Core Dependencies:
 Configuration is centralized in `config.py` for simplicity:
 
 ### Core Settings
-- `OUTPUT_SIZE`: Logo dimensions (default: 512×512)
+- `OUTPUT_SIZE`: Logo dimensions (default: 256×256)
 - `MIN_SOURCE_SIZE`: Minimum source image size (default: 60px)
 - `BATCH_SIZE`: Parallel processing batch size (default: 300)
 - `MAX_RETRIES`: Maximum number of retry attempts (default: 3)
