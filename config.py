@@ -72,12 +72,12 @@ CONFIG = {
                   # User agent string for HTTP requests
                   # Using a standard browser UA improves compatibility with some services
                   # Change only if you encounter specific blocking issues    # Filter Columns (lowercase for consistency)
-    'FILTER_COLUMNS': {
-        'CORE': ['tpid', 'mssalesid', 'crmaccountname', 'websiteurl'],  # Essential identifying columns
-        'SEGMENTATION': ['industry', 'vertical', 'sector', 'segmentgroup'],  # Business categorization
-        'GEOGRAPHY': ['country', 'city', 'areaname', 'subsidiaryname'],  # Location information
-        'STATUS': ['accountstatus', 'parentinglevel', 'top_list']  # Status and classification
-    },
+    # 'FILTER_COLUMNS': {
+    #     'CORE': ['tpid', 'mssalesid', 'crmaccountname', 'websiteurl'],  # Essential identifying columns
+    #     'SEGMENTATION': ['industry', 'vertical', 'sector', 'segmentgroup'],  # Business categorization
+    #     'GEOGRAPHY': ['country', 'city', 'areaname', 'subsidiaryname'],  # Location information
+    #     'STATUS': ['accountstatus', 'parentinglevel', 'top_list']  # Status and classification
+    # },
     # These column groupings help organize the data and enable filtering via command-line options
     # Column names are case-insensitive and will be normalized during processing
     
