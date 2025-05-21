@@ -8,7 +8,7 @@ A robust Python utility for downloading, standardizing, and tracking company log
 - Batch processing with configurable size and parallelism
 - Progress tracking and resume capability (avoids reprocessing completed/failed companies)
 - Command-line interface for flexible configuration
-- Filtering by column values or specific TPIDs
+- Filtering by specific TPIDs
 - Enriched data export with logo source statistics
 - Detailed logging and error handling
 - Temporary file management and cleaning
@@ -61,7 +61,6 @@ This ensures that only truly invalid domains are skipped, improving logo fetch r
 - `--max-processes`, `-p`: Maximum parallel processes (overrides config)
 - `--top`, `-n`: Process only the first N companies
 - `--clean`, `-c`: Clean temporary files before starting
-- `--filter`, `-f`: Add a filter in format "column=value" (can be used multiple times)
 - `--tpid`: Process only the specified TPID(s) (can be used multiple times)
 
 Run `python logo_scraper.py --help` for a full list and details.
@@ -82,7 +81,7 @@ Run `python logo_scraper.py --help` for a full list and details.
 ## Example Usage
 
 ```bash
-python logo_scraper.py --input "input/Companies.xlsx" --output "logos" --batch-size 100 --max-processes 8 --filter "country=US" --tpid 12345 --clean
+python logo_scraper.py --input "input/Companies.xlsx" --output "logos" --batch-size 100 --max-processes 8 --tpid 12345 --top 50 --clean
 ```
 
 ## See Also
@@ -252,9 +251,6 @@ python logo_scraper.py --batch-size 100 --max-processes 12
 
 # Process only the first 50 companies
 python logo_scraper.py --top 50
-
-# Apply filters
-python logo_scraper.py --filter "country=US" --filter "industry=Technology"
 
 # Clean temporary files automatically
 python logo_scraper.py --clean

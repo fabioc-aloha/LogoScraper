@@ -48,7 +48,7 @@ The Company Logo Scraper efficiently acquires and standardizes company logos at 
 - Service health monitoring and performance dashboards
 
 ### Test Suite
-- **Input Service Tests**: Validation of data filtering and column normalization
+- **Input Service Tests**: Validation of input data and column normalization
 - **Logo Generation Tests**: End-to-end validation of the generation pipeline
 - **Multilingual Text Tests**: Special test cases for challenging scripts and languages
 
@@ -103,17 +103,17 @@ C:\Data\
 - Centralized error handling and logging
 - Shared HTTP client configuration
 
-## 5. Data Input and Filtering
+## 5. Data Input and Selection
 
 ### Implementation
 - **Input Format**: Excel file with required fields (TPID, company name)
-- **Filtering Options**: Command-line filters for flexible data selection
+- **Selection Options**: Command-line options for limiting input (e.g., --top, --tpid)
 - **Normalization**: Automatic column name standardization
 - **Validation**: Data integrity checks before processing
 
 ### Features
-- Command-line filtering with `--filter` argument
 - Specific TPID targeting with `--tpid` option
+- Limit processing to the first N companies with `--top` option
 - Detailed error reporting for invalid data
 
 ### Pending Improvements
@@ -195,7 +195,6 @@ C:\Data\
 - Custom input/output paths
 - Batch size and parallelism control
 - Logging level configuration
-- Filtering by column values
 - TPID-specific processing
 - Temporary file management
 
