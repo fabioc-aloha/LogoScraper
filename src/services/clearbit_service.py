@@ -10,16 +10,10 @@ This service is the primary online source for company logos in the scraping pipe
 """
 
 import logging
-<<<<<<< HEAD:src/services/clearbit_service.py
+import requests
 from src.utils.rate_limiter import rate_limit
 from src.utils.session_manager import SessionManager
 from src.config import CONFIG
-=======
-import requests
-from utils.rate_limiter import rate_limit
-from utils.session_manager import SessionManager
-from config import CONFIG
->>>>>>> origin/master:services/clearbit_service.py
 
 class ClearbitService:
     """Service class for fetching logos from the Clearbit Logo API."""

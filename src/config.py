@@ -101,24 +101,7 @@ CONFIG = {
                   # User agent string for HTTP requests
                   # Using a standard browser UA improves compatibility with some services
                   # Change only if you encounter specific blocking issues
-<<<<<<< HEAD:src/config.py
                   
-    # Filter Columns (lowercase for consistency)
-    'FILTER_COLUMNS': {
-        'CORE': ['tpid', 'mssalesid', 'crmaccountname', 'websiteurl'],  # Essential identifying columns
-        'SEGMENTATION': ['industry', 'vertical', 'sector', 'segmentgroup'],  # Business categorization
-        'GEOGRAPHY': ['country', 'city', 'areaname', 'subsidiaryname'],  # Location information
-        'STATUS': ['accountstatus', 'parentinglevel', 'top_list']  # Status and classification
-    },
-    # These column groupings help organize the data and enable filtering via command-line options
-    # Column names are case-insensitive and will be normalized during processing
-    
-    # Uncomment to limit processing to a subset of rows (useful for testing)
-    # 'TOP_N': 2000,  # Process only the first N companies from the input file
-                      # Combine with --filter options for representative samples
-
-=======
->>>>>>> origin/master:config.py
     # Filenames and prefixes
     'FAILED_DOMAINS_CACHE_FILE': 'failed_domains_cache.json',  # Persists domains with failed lookups
                                                               # Prevents repeated attempts at domains known to fail

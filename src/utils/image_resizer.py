@@ -9,13 +9,8 @@ Recent changes:
 
 import logging
 from io import BytesIO
-<<<<<<< HEAD:src/utils/image_resizer.py
-from PIL import Image
-from src.config import CONFIG
-=======
 from PIL import Image, UnidentifiedImageError
-from config import CONFIG
->>>>>>> origin/master:utils/image_resizer.py
+from src.config import CONFIG
 
 # Custom Exceptions
 class ImageProcessingError(Exception):
