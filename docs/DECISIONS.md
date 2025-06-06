@@ -48,7 +48,7 @@ The Company Logo Scraper efficiently acquires and standardizes company logos at 
 - Service health monitoring and performance dashboards
 
 ### Test Suite
-- **Input Service Tests**: Validation of data filtering and column normalization
+- **Input Service Tests**: Validation of input data and column normalization
 - **Logo Generation Tests**: End-to-end validation of the generation pipeline
 - **Multilingual Text Tests**: Special test cases for challenging scripts and languages
 
@@ -70,7 +70,7 @@ C:\Data\
 
 ### Implementation
 - **Primary Source**: Clearbit Logo API
-- **Fallback**: Default Logo Generator with text-based company logos
+- **Fallback**: DuckDuckGo and Google S2 favicon services (no direct site scraping)
 - **Image Requirements**: 512×512 PNG format with consistent quality
 - **Multilingual Support**: Comprehensive language and script detection
 
@@ -103,17 +103,17 @@ C:\Data\
 - Centralized error handling and logging
 - Shared HTTP client configuration
 
-## 5. Data Input and Filtering
+## 5. Data Input and Selection
 
 ### Implementation
 - **Input Format**: Excel file with required fields (TPID, company name)
-- **Filtering Options**: Command-line filters for flexible data selection
+- **Selection Options**: Command-line options for limiting input (e.g., --top, --tpid)
 - **Normalization**: Automatic column name standardization
 - **Validation**: Data integrity checks before processing
 
 ### Features
-- Command-line filtering with `--filter` argument
 - Specific TPID targeting with `--tpid` option
+- Limit processing to the first N companies with `--top` option
 - Detailed error reporting for invalid data
 
 ### Pending Improvements
@@ -195,7 +195,6 @@ C:\Data\
 - Custom input/output paths
 - Batch size and parallelism control
 - Logging level configuration
-- Filtering by column values
 - TPID-specific processing
 - Temporary file management
 
@@ -262,8 +261,14 @@ C:\Data\
 ## 2025-05-19: Robust Domain Cleaning and Diagnostics
 
 - **Domain Cleaning:** The domain cleaning logic was significantly improved to handle malformed/invalid domains. It now removes unwanted characters (commas, semicolons, slashes, backslashes, quotes, angle brackets, parentheses, etc.), strips `www.`, handles multiple domains separated by delimiters, and removes leading/trailing dots and hyphens. Only the first valid domain is used.
+- **Minimum Logo Size:** The minimum acceptable logo size is now **28x28 pixels** (was 32x32). Images below this threshold are considered too low quality and are skipped.
 - **Diagnostics & Logging:** Added detailed logging for Clearbit logo fetch failures, including HTTP status codes and response content. This enables better troubleshooting and transparency for why a logo fetch failed.
 - **Pipeline Robustness:** The pipeline now gracefully handles malformed or invalid domains, only failing when a domain is truly unusable. This reduces false negatives and improves overall logo fetch rates.
 - **Documentation:** Updated all relevant documentation and code docstrings to reflect these changes and ensure the workflow is clear and up-to-date.
+
+## May 2025: Minimum Logo Size and Upscaling
+- Decision: Only one dimension (width or height) must be >= MIN_SOURCE_SIZE for a logo to be accepted.
+- Decision: Remove the upscaling ratio limit; upscaling is now only limited by the configured output size.
+- Rationale: This enables more favicons and small logos to be visually inspected and gives users more flexibility.
 
 ## Previous Decisions

@@ -47,9 +47,10 @@ CONFIG = {
                          # Recommended range: 256-1024. Values below 256 may result in poor text readability.
                          # Values above 1024 significantly increase storage requirements without proportional quality gains.
                          
-    'MIN_SOURCE_SIZE': 32,  # Minimum source image dimension in pixels
+    'MIN_SOURCE_SIZE': 24,  # Minimum source image dimension in pixels
+                            # At least one dimension (width or height) must be >= this value.
                             # This filters out very small source images that would produce poor quality results.
-                            # Values below 40 may allow low-quality images; above 100 may reject too many valid sources.
+                            # Values below 24 may allow low-quality images; above 100 may reject too many valid sources.
                             
     'BATCH_SIZE': 300,  # Number of companies to process in each parallel batch
                         # Determines memory usage and CPU utilization. For systems with 16GB RAM,
@@ -100,6 +101,7 @@ CONFIG = {
                   # User agent string for HTTP requests
                   # Using a standard browser UA improves compatibility with some services
                   # Change only if you encounter specific blocking issues
+<<<<<<< HEAD:src/config.py
                   
     # Filter Columns (lowercase for consistency)
     'FILTER_COLUMNS': {
@@ -115,6 +117,8 @@ CONFIG = {
     # 'TOP_N': 2000,  # Process only the first N companies from the input file
                       # Combine with --filter options for representative samples
 
+=======
+>>>>>>> origin/master:config.py
     # Filenames and prefixes
     'FAILED_DOMAINS_CACHE_FILE': 'failed_domains_cache.json',  # Persists domains with failed lookups
                                                               # Prevents repeated attempts at domains known to fail

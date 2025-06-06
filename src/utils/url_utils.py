@@ -1,6 +1,12 @@
 """URL Processing Utilities
 
 This module provides utility functions for processing and normalizing URLs and domain names.
+
+Functions:
+- clean_domain(domain): Cleans and normalizes a domain string, handling unwanted characters, delimiters, prefixes, and edge cases.
+- get_domain_from_url(url_or_domain): Extracts and cleans the domain from a URL or domain string, robust to malformed or email-like input.
+
+These utilities are used throughout the logo scraping pipeline to ensure only valid, clean domains are used for logo retrieval.
 """
 
 import logging
@@ -20,12 +26,12 @@ def clean_domain(domain):
     if not domain:
         return None
 
-    # Remove anything after '@'
-    domain = domain.split('@')[0]
+    # Remove anything before '@' (e.g. user@domain.com -> domain.com)
+    domain = domain.split('@')[-1]
 
-    # Split on common delimiters and use the first part
+    # Split on common delimiters and use the first non-empty part
     delimiters = r'[;,/\\\s]'
-    parts = re.split(delimiters, domain)
+    parts = [p for p in re.split(delimiters, domain) if p]
     domain = parts[0] if parts else domain
 
     # Remove unwanted characters
@@ -48,8 +54,8 @@ def get_domain_from_url(url_or_domain):
     """
     if not url_or_domain:
         return None
-    # Remove anything after '@'
-    cleaned = url_or_domain.split('@')[0]
+    # Remove anything before '@' so "user@domain.com" -> "domain.com"
+    cleaned = url_or_domain.split('@')[-1]
     # Remove all spaces
     cleaned = cleaned.replace(' ', '')
     # If it's a URL, extract the netloc
