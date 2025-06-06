@@ -29,10 +29,32 @@ failed_domains_cache.json
 
 # Project specific directories
 temp/
+output/
+logos/
+
+# Keep temp directory structure but ignore contents
+temp/*
+!temp/.gitkeep
+
+# Sample data files (keep examples but ignore user data)
+*.xlsx
+*.xls
+!example_data.xlsx
+!sample_companies.xlsx
+!example_companies.csv
+
 # Include tests directory but ignore test artifacts
 tests/__pycache__/
 tests/*.log
 tests/temp/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.pytest_cache/
+coverage.xml
+*.cover
 
 # OS specific
 .DS_Store
