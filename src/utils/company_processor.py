@@ -113,17 +113,10 @@ class CompanyProcessor:
                 'OutputPath': output_path
             }
             return True, source, enrichment_data
-            
-        logging.error(f"[TPID {tpid}] FAILED: Could not save default logo for '{company_name}'")
-        return self._fail_result("Storage Error")
+        else:
+            logging.error(f"[TPID {tpid}] FAILED: Could not save default logo for '{company_name}'")
+            return self._fail_result("Storage Error")
 
-from utils.url_utils import get_domain_from_url
-from utils.image_resizer import save_standardized_logo, ImageProcessingError
-from config import CONFIG
-
-class CompanyProcessor:
-    """Orchestrates company logo processing."""
-    
     def __init__(self, output_folder: str, temp_folder: str):
         """Initialize the company processor."""
         self.output_folder = output_folder
