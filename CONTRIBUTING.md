@@ -21,8 +21,8 @@ Thank you for your interest in contributing! This guide will help you get starte
 
 ## 📋 Before You Start
 
-- **Read the docs**: Check [docs/DECISIONS.md](docs/DECISIONS.md) for architectural principles
-- **Understand the structure**: Review [docs/LEARNINGS.md](docs/LEARNINGS.md) for project insights
+- **Read the docs**: Check [DECISIONS.md](DECISIONS.md) for architectural principles
+- **Understand the structure**: Review [LEARNINGS.md](LEARNINGS.md) for project insights
 - **Check existing issues**: Look for open issues or discussions on GitHub
 
 ## 🛠️ Development Guidelines
@@ -59,7 +59,6 @@ Thank you for your interest in contributing! This guide will help you get starte
 - Steps to reproduce
 - Expected vs actual behavior
 - Your environment (OS, Python version)
-- Relevant log entries from `temp/logo_scraper.log`
 
 ### ✨ Feature Requests
 **Before requesting:**

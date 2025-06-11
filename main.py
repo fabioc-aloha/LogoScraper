@@ -51,9 +51,6 @@ Version: {__version__}
     parser.add_argument('--max-processes', '-p', type=int,
                        help=f'Maximum number of parallel processes (default: {CONFIG["MAX_PROCESSES"]})')
 
-    parser.add_argument('--clean', '-c', action='store_true',
-                       help='Clean temporary files before starting')
-
     parser.add_argument('--filter', '-f', action='append',
                        help='Add a filter in format "column=value" (can be used multiple times)')
 

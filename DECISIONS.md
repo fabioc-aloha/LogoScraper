@@ -203,75 +203,11 @@ C:\Data\
 
 ---
 
-# DECISIONS
+# Architecture & Design
 
-## 2025-06-05: Professional Codebase Architecture and Release Infrastructure
-
-### Code Organization Architecture
-- **Src-Based Structure:** Adopted the `src/` layout pattern, moving all application code into a dedicated source directory. This decision improves import hygiene, prevents accidental execution of modules, and follows Python packaging best practices.
-- **Consolidated Entry Point:** Created a single `main.py` file in the project root that serves as the sole entry point for the application. This consolidates CLI argument parsing and orchestration logic, eliminating the need for multiple CLI scripts and simplifying user interaction.
-- **Module Separation:** Organized code into logical subdirectories (`services/` for external integrations, `utils/` for shared functionality) within the `src/` directory. This improves code discoverability and maintainability.
-- **Test Organization:** Moved all tests to a root-level `tests/` directory, following Python community conventions and making tests easily discoverable for CI/CD systems.
-
-### Import Strategy
-- **Absolute Imports:** Standardized on absolute imports using the `src.` prefix throughout the codebase. This eliminates import ambiguity and makes the code more reliable across different execution contexts.
-- **Bootstrap Solution:** Used `sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))` in the main entry point to enable src imports without requiring package installation. This provides a clean development experience while maintaining professional structure.
-
-### Version and Release Management
-- **Centralized Version Information:** Created `src/__version__.py` as the single source of truth for version information, author details, and project metadata. This enables consistent version display across CLI help text and configuration output.
-- **Release Automation:** Developed comprehensive release infrastructure including:
-  - `RELEASE_CHECKLIST.md`: Detailed checklist ensuring consistent release process
-  - `release.ps1`: PowerShell automation script for release preparation
-  - Automated cleanup procedures for development artifacts
-- **Documentation Synchronization:** Established process for keeping README.md project structure in sync with actual codebase organization.
-
-### Configuration Integration
-- **CLI-Config Integration:** Validated that CLI arguments properly flow through the centralized CONFIG dictionary to all application layers (services, utilities, core logic). This ensures consistent behavior regardless of configuration source.
-- **Path Management:** Implemented robust path handling for different execution contexts while maintaining clean separation between temporary files (`temp/`), source code (`src/`), and tests (`tests/`).
-
-### Development Workflow
-- **Incremental Restructuring:** Adopted an approach of making changes incrementally with testing at each step, reducing risk and enabling early detection of issues.
-- **Clean Development Environment:** Established procedures for maintaining clean repository state through automated cleanup of `__pycache__` directories, temporary files, and test artifacts.
-- **Professional Presentation:** Ensured all documentation, project structure, and release artifacts maintain professional standards suitable for open-source distribution.
-
-### Rationale for Key Decisions
-
-**Why src/ Layout?**
-- Prevents accidental execution of modules when the project root is in PYTHONPATH
-- Clearly separates source code from configuration, documentation, and test files  
-- Standard pattern for Python packages intended for distribution
-- Improves import hygiene and reduces namespace pollution
-
-**Why Consolidated main.py?**
-- Single, obvious entry point reduces user confusion
-- Eliminates duplication of CLI parsing logic across multiple files
-- Simplifies packaging and distribution
-- Makes it easier to understand application flow
-
-**Why Absolute Imports?**
-- Eliminates import ambiguity and relative import complexity
-- More reliable across different execution contexts
-- Easier to understand and maintain
-- Standard practice for production Python code
-
-**Why Comprehensive Release Infrastructure?**
-- Ensures consistent, reproducible releases
-- Reduces human error in release process
-- Provides clear documentation for contributors
-- Enables automation and CI/CD integration
-- Maintains professional project standards
-
-## 2025-05-19: Robust Domain Cleaning and Diagnostics
-
-- **Domain Cleaning:** The domain cleaning logic was significantly improved to handle malformed/invalid domains. It now removes unwanted characters (commas, semicolons, slashes, backslashes, quotes, angle brackets, parentheses, etc.), strips `www.`, handles multiple domains separated by delimiters, and removes leading/trailing dots and hyphens. Only the first valid domain is used.
-- **Minimum Logo Size:** The minimum acceptable logo size is now **28x28 pixels** (was 32x32). Images below this threshold are considered too low quality and are skipped.
-- **Diagnostics & Logging:** Added detailed logging for Clearbit logo fetch failures, including HTTP status codes and response content. This enables better troubleshooting and transparency for why a logo fetch failed.
-- **Pipeline Robustness:** The pipeline now gracefully handles malformed or invalid domains, only failing when a domain is truly unusable. This reduces false negatives and improves overall logo fetch rates.
-- **Documentation:** Updated all relevant documentation and code docstrings to reflect these changes and ensure the workflow is clear and up-to-date.
-
-## May 2025: Minimum Logo Size and Upscaling
-- Decision: Only one dimension (width or height) must be >= MIN_SOURCE_SIZE for a logo to be accepted.
-- Decision: Remove the upscaling ratio limit; upscaling is now only limited by the configured output size.
-- Rationale: This enables more favicons and small logos to be visually inspected and gives users more flexibility.
-
-## Previous Decisions
+- All core logic is in `src/`
+- Main entry point: `main.py`
+- Services for external APIs, utils for helpers
+- Configurable via `src/config.py` and CLI
+- Batch, parallel, and resumable processing
+- See README for usage, see LEARNINGS.md for insights
