@@ -15,16 +15,16 @@ Your Excel file needs these columns:
 
 | Column Name | Required? | Description | Example |
 |-------------|-----------|-------------|---------|
-| `tpid` | ✅ Yes | Unique ID for each company | 12345 |
-| `crmaccountname` | ✅ Yes | Company name | "Microsoft Corporation" |
-| `websiteurl` | ⚠️ Optional | Company website | "https://www.microsoft.com" |
-| `country` | ⚠️ Optional | Country code | "US" |
+| `ID` | ✅ Yes | Unique ID for each company | 1719150 |
+| `CompanyName` | ✅ Yes | Company name | "BANCO ITAU SA" |
+| `WebsiteURL` | ✅ Yes | Company website | "http://www.itau.com.br" |
+| `Country` | ✅ Yes | Country name | "Brazil" |
 
 **Example Excel structure:**
 ```
-tpid    | crmaccountname      | websiteurl              | country
-12345   | Microsoft Corp      | https://microsoft.com   | US  
-67890   | Toyota Motor Co     | https://toyota.com      | JP
+ID      | WebsiteURL                        | CompanyName        | Country
+1719150 | http://www.itau.com.br           | BANCO ITAU SA      | Brazil
+520413  | http://www.vodafone.com          | Vodafone          | United Kingdom
 ```
 
 > **💡 Tip:** The scraper is smart - it can find logos even without website URLs!
@@ -43,20 +43,30 @@ Download the Logo Scraper and extract it to a folder like `C:\LogoScraper` or `/
 - Open Terminal
 - Navigate to your folder: `cd /path/to/LogoScraper`
 
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-*This might take a minute - it's downloading the required libraries.*
+### 3. Prepare the Python Environment (Recommended)
 
-### Test Installation
-```bash
+Instead of manually installing requirements, use the provided batch file for a fully automated setup:
+
+```powershell
+./prepare_env.bat
+```
+
+This will:
+- Create a virtual environment (if needed)
+- Activate it
+- Upgrade pip
+- Install all dependencies (including dev tools) from `pyproject.toml`
+
+*If you prefer manual setup, see the README for pip/venv instructions.*
+
+### 4. Test Installation
+```powershell
 python main.py --help
 ```
 *You should see a help message with all available options.*
 
 ### 5. Try with Example Data (Optional)
-```bash
+```powershell
 python main.py --input "example_companies.csv" --output "test_logos" --batch-size 5
 ```
 *This will test the scraper with the included sample data.*
@@ -64,17 +74,17 @@ python main.py --input "example_companies.csv" --output "test_logos" --batch-siz
 ## 🎯 Your First Run
 
 ### Simple Example
-```bash
+```powershell
 python main.py --input "path/to/your/companies.xlsx" --output "path/to/save/logos"
 ```
 
 ### Try with Example Data First
-```bash
+```powershell
 python main.py --input "example_companies.csv" --output "test_logos"
 ```
 
 ### Real Example (Windows)
-```bash
+```powershell
 python main.py --input "C:\Data\Companies.xlsx" --output "C:\Data\Logos"
 ```
 
@@ -126,23 +136,26 @@ Plus these files in the `temp/` folder:
 
 ## 🎛️ Useful Options for Beginners
 
+> **Tip:** All configuration options are documented in `src/config.py`. Use CLI arguments for one-time changes, or edit `src/config.py` for permanent defaults.
+
 ### Start Small (Test with fewer companies)
-```bash
+```powershell
 python main.py --input "file.xlsx" --output "logos" --batch-size 10
 ```
 
 ### Clean Start (Clear previous attempts)
-```bash
+```powershell
 python main.py --clean --input "file.xlsx" --output "logos"
 ```
 
 ### See What's Happening (Debug mode)
-```bash
-python main.py --log-level DEBUG --input "file.xlsx" --output "logos"
+```powershell
+python main.py --input "file.xlsx" --output "logos"
+# (Set logging level in config.py if needed)
 ```
 
 ### Filter by Country (Process only US companies)
-```bash
+```powershell
 python main.py --filter "country=US" --input "file.xlsx" --output "logos"
 ```
 
@@ -151,6 +164,9 @@ python main.py --filter "country=US" --input "file.xlsx" --output "logos"
 ### Success Messages
 - `"Starting logo scraper..."` - Good start!
 - `"Processing batch X of Y"` - Making progress
+- 🟩 **Excellent batch** (≥90% success) - Most logos found successfully
+- 🟨 **Good batch** (50-89% success) - Decent logo discovery rate
+- 🟥 **Poor batch** (0-49% success) - Few or no logos found, may need troubleshooting
 - `"Successfully downloaded logo"` - Found a logo!
 - `"Generated text-based logo"` - Made a text logo (no image found)
 
@@ -164,7 +180,7 @@ python main.py --filter "country=US" --input "file.xlsx" --output "logos"
 1. **Check the main [README.md](../README.md)** for detailed options
 2. **Look at [TROUBLESHOOTING.md](TROUBLESHOOTING.md)** for specific problems  
 3. **Run with debug mode** to see what's happening:
-   ```bash
+   ```powershell
    python main.py --log-level DEBUG --input "your-file.xlsx" --output "logos"
    ```
 4. **Check the log file** `temp/logo_scraper.log` for detailed information

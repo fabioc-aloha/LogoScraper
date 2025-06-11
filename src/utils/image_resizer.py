@@ -8,6 +8,7 @@ Recent changes:
 """
 
 import logging
+import os
 from io import BytesIO
 from PIL import Image, UnidentifiedImageError
 from src.config import CONFIG
@@ -45,6 +46,10 @@ def save_standardized_logo(image_data, output_path):
     """
     if not image_data:
         raise InvalidImageDataError(f"No image data provided for {output_path}")
+    
+    # Ensure output directory exists
+    output_dir = os.path.dirname(output_path)
+    os.makedirs(output_dir, exist_ok=True)
     
     # No top-level try-except here; specific exceptions from helpers will propagate.
     # Logging of these errors will be handled by the caller (e.g., CompanyProcessor)
@@ -114,6 +119,17 @@ def convert_to_rgb(img, output_path):
             # Paste the RGBA image onto the white background using the alpha channel as mask
             background.paste(img, mask=img.split()[3]) 
             return background
+        elif img.mode == 'P':
+            # Handle palette images with potential transparency
+            if 'transparency' in img.info:
+                # Convert palette image with transparency to RGBA first, then to RGB
+                img = img.convert('RGBA')
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                background.paste(img, mask=img.split()[3])
+                return background
+            else:
+                # No transparency, direct conversion to RGB
+                return img.convert('RGB')
         elif img.mode != 'RGB':
             return img.convert('RGB')
         return img # Already RGB

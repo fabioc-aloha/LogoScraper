@@ -44,6 +44,7 @@ Thank you for your interest in contributing! This guide will help you get starte
 - Add examples to help users understand new functionality
 - Update the CHANGELOG.md with your changes
 - Consider adding troubleshooting notes if needed
+- **If you change CLI arguments or configuration, update both `src/config.py` and all relevant documentation.**
 
 ## 🔧 Types of Contributions
 
@@ -147,6 +148,7 @@ pytest tests/ --cov=src --cov-report=html
 - [ ] Tests pass locally
 - [ ] New tests added for new functionality
 - [ ] Documentation updated
+- [ ] Documentation updated for any CLI/config changes
 - [ ] CHANGELOG.md updated
 - [ ] Code follows existing style
 - [ ] No breaking changes (or clearly documented)

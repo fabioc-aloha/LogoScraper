@@ -1,0 +1,45 @@
+[project]
+name = "company-logo-scraper"
+version = "1.5.4"
+description = "Company Logo Scraper - Robust logo collection utility"
+authors = [
+    { name = "Fabio Correa", email = "fabio@correax.com" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.8"
+dependencies = [
+    "beautifulsoup4==4.12.2",
+    "cffi==1.17.1",
+    "charset-normalizer==3.3.2",
+    "click==8.1.8",
+    "colorama==0.4.6",
+    "cssselect2==0.8.0",
+    "defusedxml==0.7.1",
+    "idna==3.10",
+    "lxml==5.4.0",
+    "numpy==1.26.4",
+    "openpyxl>=3.1.2",
+    "pandas>=2.1.0",
+    "Pillow>=10.0.0",
+    "primp==0.15.0",
+    "python-dateutil==2.9.0.post0",
+    "pytz==2025.2",
+    "ratelimit==2.2.1",
+    "requests>=2.31.0",
+    "six==1.17.0",
+    "soupsieve==2.7",
+    "tqdm==4.66.1",
+    "typing_extensions==4.13.2",
+    "tzdata==2025.2",
+    "urllib3==2.1.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "flake8",
+    "pytest"
+]
+
+[tool.ruff]
+exclude = [".venv", "__pycache__"]

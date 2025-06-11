@@ -106,13 +106,13 @@ C:\Data\
 ## 5. Data Input and Selection
 
 ### Implementation
-- **Input Format**: Excel file with required fields (TPID, company name)
-- **Selection Options**: Command-line options for limiting input (e.g., --top, --tpid)
+- **Input Format**: Excel file with required fields (ID, company name)
+- **Selection Options**: Command-line options for limiting input (e.g., --top, --id)
 - **Normalization**: Automatic column name standardization
 - **Validation**: Data integrity checks before processing
 
 ### Features
-- Specific TPID targeting with `--tpid` option
+- Specific ID targeting with `--id` option
 - Limit processing to the first N companies with `--top` option
 - Detailed error reporting for invalid data
 
@@ -131,7 +131,8 @@ C:\Data\
 ### Features
 - Detailed company processing information
 - Success/failure tracking by source
-- Batch progress statistics with completion percentage
+- **Visual batch progress indicators** with color-coded success rate emojis
+- **Real-time ETA estimation** based on average batch processing times
 - Time-based estimates (elapsed and remaining)
 - Structured error categorization and reporting
 
@@ -171,31 +172,33 @@ C:\Data\
 
 ### Implementation
 - **Centralized Settings**: Single config.py with logical groupings
-- **Command-line Options**: Flexible runtime configuration
+- **Command-line Options**: Flexible runtime configuration (only actively used options are supported; unused/deprecated options have been removed for simplicity)
 - **Validation**: Startup configuration verification
 - **Defaults**: Sensible preset values for all settings
 - **Documentation**: Comprehensive parameter descriptions with recommendations
 
 ### Features
-- Command-line argument support for all key settings
+- Command-line argument support for all key settings (see README and config.py)
 - Robust argument parsing with detailed help text
 - Configuration parameter validation at startup
 - Progressive configuration override system
 - Performance optimization guidance for key parameters
+
+> **Note:** The configuration and CLI logic have been refactored for simplicity (KISS) and to avoid repetition (DRY). Only options actively used in the codebase are supported.
 
 ## 10. Command-Line Interface
 
 ### Implementation
 - **User-Friendly Options**: Simple flags for common operations
 - **Configuration Override**: Runtime adjustment without editing files
-- **Multiple Values**: Support for repeated options (e.g., multiple TPIDs)
+- **Multiple Values**: Support for repeated options (e.g., multiple IDs)
 - **Help System**: Detailed usage information for all commands
 
 ### Features
 - Custom input/output paths
 - Batch size and parallelism control
 - Logging level configuration
-- TPID-specific processing
+- ID-specific processing
 - Temporary file management
 
 ---

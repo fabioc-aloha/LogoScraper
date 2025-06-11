@@ -10,9 +10,9 @@ import unicodedata
 from io import BytesIO
 from PIL import Image, ImageDraw
 from src.utils.text_renderer import (
-    get_font, adjust_font_size, split_into_lines, 
+    adjust_font_size, split_into_lines, 
     find_font_size_for_lines, draw_centered_text, draw_multiline_text,
-    detect_script, get_script_specific_font, load_font_with_fallback
+    detect_script, load_font_with_fallback
 )
 from src.config import CONFIG
 
@@ -56,7 +56,7 @@ def create_default_logo(company_name):
     try:
         size = CONFIG['OUTPUT_SIZE']
         # Create base image
-        img = Image.new('RGB', (size, size), color='white')
+        img = Image.new('RGBA', (size, size), (255, 255, 255, 0))
         draw = ImageDraw.Draw(img)
         
         # Detect script to optimize font and layout
@@ -106,7 +106,7 @@ def create_default_logo(company_name):
                 # Create lines with appropriate character grouping
                 lines = []
                 for i in range(0, len(chars), max_chars_per_line):
-                    lines.append(''.join(chars[i:i+max_chars_per_line]))
+                    lines.append(''.join(chars[i:i + max_chars_per_line]))
                 
                 # Limit to 4 lines maximum
                 lines = lines[:4]
@@ -147,6 +147,9 @@ def create_default_logo(company_name):
                 # Apply the abbreviated text
                 abbrev_font = load_font_with_fallback(script, int(size * 0.35))
                 draw_centered_text(draw, abbrev, abbrev_font, size, size)
+
+        # Draw border
+        draw.rectangle([0, 0, size - 1, size - 1], outline=(0, 0, 0, 255), width=2)
 
         # Convert to bytes
         img_byte_arr = BytesIO()

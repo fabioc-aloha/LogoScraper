@@ -8,7 +8,7 @@ import logging
 import os
 import platform
 import unicodedata
-from PIL import ImageFont, Image, ImageDraw
+from PIL import ImageFont
 from src.config import CONFIG
 
 # Define universal fonts that work well for multi-language support
@@ -184,7 +184,6 @@ def detect_script(text):
         # Get character name and category
         try:
             name = unicodedata.name(char, '').upper()
-            category = unicodedata.category(char)
         except ValueError:
             # If we can't get the Unicode name, consider it 'other'
             counts['other'] += 1
@@ -447,10 +446,10 @@ def draw_centered_text(draw, text, font, width, height):
             logging.error(f"Text rendering fallback also failed: {str(e2)}")
             # Last resort - use anchor="mm" for middle-middle if supported
             try:
-                draw.text((width/2, height/2), text, font=font, fill='white', anchor="mm")
-            except:
+                draw.text((width / 2, height / 2), text, font=font, fill='white', anchor="mm")
+            except Exception:
                 # Very basic fallback without positioning
-                draw.text((10, height/2), text, font=font, fill='white')
+                draw.text((10, height / 2), text, font=font, fill='white')
 
 def draw_multiline_text(draw, lines, font, width, height):
     """
@@ -523,12 +522,10 @@ def draw_multiline_text(draw, lines, font, width, height):
             # Last resort - join lines and use simple centered text
             try:
                 combined_text = "\n".join(lines)
-                draw.text((width/2, height/2), combined_text, font=font, fill='white', anchor="mm")
-            except:
+                draw.text((width / 2, height / 2), combined_text, font=font, fill='white', anchor="mm")
+            except Exception:
                 # Very basic fallback
-                y = height/3
+                y = height / 3
                 for line in lines:
                     draw.text((10, y), line, font=font, fill='white')
                     y += font.size * 1.5
-
-# ... keep other existing functions ...

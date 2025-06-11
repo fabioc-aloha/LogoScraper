@@ -15,14 +15,14 @@ Your Excel file needs these columns:
 
 | Column Name | Required? | Description | Example |
 |-------------|-----------|-------------|---------|
-| `tpid` | ✅ Yes | Unique ID for each company | 12345 |
-| `crmaccountname` | ✅ Yes | Company name | "Microsoft Corporation" |
-| `websiteurl` | ⚠️ Optional | Company website | "https://www.microsoft.com" |
-| `country` | ⚠️ Optional | Country code | "US" |
+| `ID` | ✅ Yes | Unique ID for each company | 12345 |
+| `CompanyName` | ✅ Yes | Company name | "Microsoft Corporation" |
+| `WebsiteURL` | ⚠️ Optional | Company website | "https://www.microsoft.com" |
+| `Country` | ⚠️ Optional | Country code | "US" |
 
 **Example Excel structure:**
 ```
-tpid    | crmaccountname      | websiteurl              | country
+ID      | CompanyName         | WebsiteURL              | Country
 12345   | Microsoft Corp      | https://microsoft.com   | US  
 67890   | Toyota Motor Co     | https://toyota.com      | JP
 ```

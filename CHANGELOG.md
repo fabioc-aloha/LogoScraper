@@ -5,6 +5,22 @@ All notable changes to the Company Logo Scraper project will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-06-11
+
+### Added
+- Automated environment setup with `prepare_env.bat` supporting `pyproject.toml` and `[dev]` extras
+- Updated documentation to recommend batch file for setup and onboarding
+- Improved release checklist and documentation update workflow
+- Enhanced linting configuration to ignore line length and blank lines for practical code style
+
+### Changed
+- Updated all documentation to reflect new setup and release process
+- Improved code quality and consistency per updated linting rules
+
+### Fixed
+- Addressed all critical linting errors and warnings (except line length/blank lines)
+- Fixed minor docstring and configuration documentation mismatches
+
 ## [1.1.0] - 2025-06-05
 
 ### Added
@@ -41,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Release automation script (`release.ps1`)
 - Enhanced .gitignore with comprehensive project-specific exclusions
 - Organized documentation in `docs/` folder
+- Documentation updated to reflect streamlined configuration and CLI options. Removed references to deprecated arguments and clarified configuration override flow.
 
 ### Changed
 - Restructured entire codebase to use `src/` layout

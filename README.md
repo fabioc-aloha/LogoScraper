@@ -10,7 +10,7 @@ A robust Python utility for downloading, standardizing, and tracking company log
 - Batch processing with configurable size and parallelism
 - Progress tracking and resume capability (avoids reprocessing completed/failed companies)
 - Command-line interface for flexible configuration
-- Filtering by specific TPIDs
+- Filtering by specific IDs
 - Enriched data export with logo source statistics
 - Detailed logging and error handling
 - Temporary file management and cleaning
@@ -59,13 +59,14 @@ This ensures that only truly invalid domains are skipped, improving logo fetch r
 - `--output`, `-o`: Output directory for logos (overrides config)
 - `--temp`, `-t`: Temporary directory for processing (overrides config)
 - `--batch-size`, `-b`: Number of companies per batch (overrides config)
-- `--log-level`, `-l`: Logging level (DEBUG, INFO, etc.)
 - `--max-processes`, `-p`: Maximum parallel processes (overrides config)
-- `--top`, `-n`: Process only the first N companies
+- `--filter`, `-f`: Filter data (format: "column=value")
+- `--id`: Process only the specified ID(s) (can be used multiple times)
 - `--clean`, `-c`: Clean temporary files before starting
-- `--tpid`: Process only the specified TPID(s) (can be used multiple times)
 
-Run `python logo_scraper.py --help` for a full list and details.
+Run `python main.py --help` for a full list and details.
+
+> **Note:** CLI arguments always override defaults in `src/config.py`. For permanent changes, edit `src/config.py` directly.
 
 ## Outputs
 
@@ -83,7 +84,7 @@ Run `python logo_scraper.py --help` for a full list and details.
 ## Example Usage
 
 ```bash
-python logo_scraper.py --input "input/Companies.xlsx" --output "logos" --batch-size 100 --max-processes 8 --tpid 12345 --top 50 --clean
+python main.py --input "input/Companies.xlsx" --output "logos" --batch-size 100 --max-processes 8 --id 12345 --clean
 ```
 
 ## See Also
@@ -115,8 +116,9 @@ Perfect for CRM systems, business directories, or any application needing consis
 - Standardizes to consistent 256×256 PNG files
 - Processes in batches with parallel processing for speed
 - Tracks progress and resumes if interrupted
+- **Real-time ETA estimation** for large datasets
 - Handles failures gracefully with detailed logging
-- Supports filtering by country, TPID, or custom criteria
+- Supports filtering by country, ID, or custom criteria
 - Works globally with multilingual company names
 
 ### Core Functionality
@@ -133,116 +135,34 @@ Perfect for CRM systems, business directories, or any application needing consis
 
 ## 🚀 Quick Start
 
-### URL Handling
-- URL cleanup and normalization
-- Domain filtering and validation
-- Search result caching
+### 1. Prepare the Python Environment (Recommended)
 
-### Process Management
-- Parallel processing with configurable workers
-- Comprehensive progress tracking
-- Enhanced error handling and logging
-- Resource cleanup
-- Detailed real-time progress reporting
-- Estimated time remaining calculations
-- Source breakdown statistics
+For Windows/PowerShell users, use the provided batch file for a fully automated setup:
 
-## 🚀 Quick Start
-
-1. **Install dependencies:**
-- pandas: Data processing
-- Pillow: Image processing
-- openpyxl: Excel file support
-- ratelimit: API rate limiting
-
-## Configuration
-
-Configuration is centralized in `config.py` for simplicity:
-
-### Core Settings
-- `OUTPUT_SIZE`: Logo dimensions (default: 256×256, configurable)
-- `MIN_SOURCE_SIZE`: Minimum source image size (default: 24px, configurable)
-- `BATCH_SIZE`: Parallel processing batch size (default: 300, configurable)
-- `MAX_RETRIES`: Maximum number of retry attempts (default: 3, configurable)
-- `RETRY_DELAY`: Base delay between retries in seconds (default: 1.0, configurable)
-
-### Service Settings
-- Rate limits and timeouts
-- API endpoints
-- HTTP configurations
-- Search parameters
-
-## Directory Structure
-
-```
-C:\Data\                   # Base data directory
-    ├── logo\              # Processed company logos
-    ├── temp\              # Temporary processing files
-    └── input\             # Input Excel files
-
-Project Structure:
-├── logo_scraper.py        # Main entry point and orchestrator
-├── config.py              # Centralized configuration (all settings)
-├── DECISIONS.md           # Architectural decisions and rationale
-├── LEARNINGS.md           # Project learnings, technical notes, and best practices
-├── README.md              # Usage guide and documentation
-├── requirements.txt       # Python dependencies
-├── LICENSE                # Project license
-├── services/              # Integrations for logo sources (Clearbit, favicon, default)
-├── utils/                 # Internal utilities (batching, progress, image, text, etc.)
-├── temp/                  # Temporary files, logs, and progress tracking (auto-created)
-└── tests/                 # Unit and integration tests
+```powershell
+./prepare_env.bat
 ```
 
-## Architecture Overview
+This will:
+- Create a virtual environment (if needed)
+- Activate it
+- Upgrade pip
+- Install all dependencies (including dev tools) from `pyproject.toml`
 
-The project is organized for clarity, modularity, and extensibility:
+*If you prefer manual setup, see below for pip/venv instructions.*
 
-- **logo_scraper.py**: Main script. Handles argument parsing, configuration, batch processing, progress tracking, and orchestration of the entire workflow.
-- **config.py**: All configuration options (paths, batch size, logo size, API settings, etc.) are centralized here for easy management.
-- **services/**: Contains service modules for fetching/generating logos:
-  - `clearbit_service.py`: Fetches logos from the Clearbit API
-  - `favicon_service.py`: Fetches favicons using DuckDuckGo and Google S2 as fallback sources (no direct site scraping)
-  - `default_service.py`: Generates default logos when no online logo is available
-- **utils/**: Utility modules for:
-  - Progress tracking (`progress_tracker.py`)
-  - Batch processing (`batch_processor.py`)
-  - Image and text processing (`image_resizer.py`, `text_renderer.py`, etc.)
-  - Domain and URL cleaning (`url_utils.py`, `domain_filter.py`)
-  - Logging, config validation, and more
-- **tests/**: Comprehensive test suite for all major components and integration scenarios
-- **temp/**: Stores logs, progress files, and temporary data (auto-created and safe to delete)
+### 2. Prepare your data:
+- Excel file with columns: `ID`, `CompanyName`, `WebsiteURL` (optional), `Country` (optional)
 
-This structure supports robust, large-scale logo scraping with clear separation of concerns and easy extensibility.
+### 3. Run the scraper:
+```powershell
+python main.py --input "path/to/Companies.xlsx" --output "path/to/logos"
+```
 
-## Input Format
-
-Required Excel file fields:
-- `tpid`: Unique identifier
-- `crmaccountname`: Company name
-- `websiteurl`: Optional website URL
-- `country`: Optional, used for URL discovery
-
-## Usage
-
-1. Setup environment:
->>>>>>> origin/master
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Prepare your data:**
-   - Excel file with columns: `tpid`, `crmaccountname`, `websiteurl` (optional), `country` (optional)
-
-3. **Run the scraper:**
-   ```bash
-   python main.py --input "path/to/Companies.xlsx" --output "path/to/logos"
-   ```
-
-4. **Need help?**
-   ```bash
-   python main.py --help
-   ```
+### 4. Need help?
+```powershell
+python main.py --help
+```
 
 ## 📋 Common Examples
 
@@ -251,7 +171,7 @@ Required Excel file fields:
 python main.py --input "C:\\Data\\Companies.xlsx" --output "C:\\Data\\logos"
 
 # Filter by country and process specific companies
-python main.py --filter "country=US" --tpid 12345 --tpid 67890
+python main.py --filter "Country=US" --id 12345 --id 67890
 
 # Adjust performance settings
 python main.py --batch-size 150 --max-processes 4
@@ -281,9 +201,8 @@ python logo_scraper.py --log-level DEBUG
 | `--batch-size`, `-b` | Companies per batch | 300 |
 | `--max-processes`, `-p` | Parallel workers | 8 |
 | `--filter`, `-f` | Filter data (format: "column=value") | None |
-| `--tpid` | Process specific company IDs | None |
+| `--id` | Process specific company IDs | None |
 | `--clean`, `-c` | Clear temp files before starting | False |
-| `--log-level`, `-l` | Logging detail (DEBUG, INFO, ERROR) | INFO |
 
 ### Output Files
 - PNG logos in `C:\Data\logo\{TPID}.png` (default output folder, configurable in `config.py`)
@@ -331,7 +250,7 @@ pytest tests/
 pytest tests/test_logo_scraper_core.py -v
 ```
 
-## 📂 Project Structure
+## 🗂️ Project Structure
 
 ```
 LogoScraper/
@@ -361,15 +280,14 @@ The application expects the following data folder structure (configurable in `sr
 C:\Data/
 ├── input/
 │   └── Companies.xlsx      # 📊 Your company data (default location)
-└── logo/                  # 🖼️ Downloaded logos saved here
-    ├── 12345.png          # Logo files named by TPID
+└── logo/                  # 🖼️ Downloaded logos saved here    ├── 12345.png          # Logo files named by ID
     ├── 67890.png
     └── ...
 ```
 
 > **💡 Note:** These paths are defaults and can be overridden using command-line arguments (`--input`, `--output`) or by editing `src/config.py`.
 
-## 📚 Documentation
+## 📝 Documentation
 
 - **New to this tool?** Start with [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
 - **Having issues?** Check [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)

@@ -6,7 +6,7 @@ This module provides configuration validation functionality.
 import os
 import logging
 import sys
-from typing import List, Dict
+from typing import Dict
 
 # Add parent directory to sys.path to allow importing config
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -46,15 +46,20 @@ class ConfigValidator:
         output_folder = self.config.get('OUTPUT_FOLDER')
         if not output_folder:
             self.errors.append("OUTPUT_FOLDER not configured")
-        elif not os.path.exists(os.path.dirname(output_folder)):
-            self.errors.append(f"Parent directory for OUTPUT_FOLDER does not exist: {output_folder}")
+        else:
+            parent_dir = os.path.dirname(output_folder)
+            if parent_dir and not os.path.exists(parent_dir):
+                self.errors.append(f"Parent directory for OUTPUT_FOLDER does not exist: {output_folder}")
             
         # Check input file
         input_file = self.config.get('INPUT_FILE')
         if not input_file:
             self.errors.append("INPUT_FILE not configured")
-        elif not os.path.exists(os.path.dirname(input_file)):
-            self.errors.append(f"Parent directory for INPUT_FILE does not exist: {input_file}")
+        else:
+            parent_dir = os.path.dirname(input_file)
+            # Only check parent directory if it's not empty (i.e., file is not in current directory)
+            if parent_dir and not os.path.exists(parent_dir):
+                self.errors.append(f"Parent directory for INPUT_FILE does not exist: {input_file}")
 
     def _validate_sizes(self):
         """Validate size configurations."""
@@ -89,12 +94,9 @@ class ConfigValidator:
 
     def _validate_required_fields(self):
         """Validate required field configurations."""
-        required_fields = {
-            'USER_AGENT': str,
+        required_fields = {            'USER_AGENT': str,
             'REQUEST_TIMEOUT': int,
-            'BATCH_SIZE': int,
-            'LOG_LEVEL': str,
-            'LOG_FORMAT': str
+            'BATCH_SIZE': int
             # 'CORNER_RADIUS': int
         }
         

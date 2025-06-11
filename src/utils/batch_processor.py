@@ -1,113 +1,123 @@
 """Batch Processing Module
 
-This module handles the parallel processing of company batches for logo scraping.
-
-Functions:
-- process_batch: Processes a batch of companies in parallel, manages worker pool, aggregates results, and logs batch statistics.
-- process_company_wrapper: Wrapper for processing a single company, used by multiprocessing.
-
-Batch processing enables efficient, large-scale logo retrieval with robust error handling and progress reporting.
-"""
+This module handles the parallel processing of company batches for logo scraping."""
 
 import os
-import logging
+import signal
 import time
 from multiprocessing import Pool
-import signal
 import pandas as pd
 from src.utils.company_processor import CompanyProcessor
-from src.utils.enrichment import enrich_batch_results
 from src.config import CONFIG
 
 def init_worker():
-    # Ignore SIGINT in child processes to allow graceful shutdown from main process
+    """Initialize worker process to ignore SIGINT."""
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 def process_company_wrapper(args):
     """Wrapper function for processing a single company in parallel."""
-    row, output_folder, temp_folder, batch_idx, total_batches, company_idx, batch_size = args
-    
+    row, output_folder = args
+    processor = CompanyProcessor(output_folder)
     try:
-        tpid = str(row['tpid'])
-        company_name = row.get('crmaccountname', '').strip()
-        overall_idx = ((batch_idx - 1) * batch_size) + company_idx + 1
-        
-        log_prefix = f"[Batch {batch_idx}/{total_batches}][Company {company_idx + 1}/{batch_size}][Overall {overall_idx}]"
-        logging.info(f"{log_prefix} Starting processing for '{company_name}' (TPID: {tpid})")
-        
-        processor = CompanyProcessor(output_folder, temp_folder)
-        result = processor.process_company(row)
+        success, source = processor.process_company(row)
+        return str(row['ID']), success, source
+    finally:
         processor.cleanup()
-        
-        success = "SUCCESS" if result[0] else "FAILED"
-        source = result[1]
-        logging.info(f"{log_prefix} {success}: '{company_name}' - Source: {source}")
-        
-        return result
-        
-    except Exception as e:
-        logging.error(f"Error processing company {row.get('tpid', 'Unknown')}: {str(e)}")
-        return False, f"Error: {str(e)}", {
-            'DiscoveredURL': None,
-            'FinalDomain': None,
-            'LogoSource': f"Error: {str(e)}",
-            'URLSource': None
-        }
 
-def process_batch(companies_df, output_folder, temp_folder, num_processes=None, batch_idx=1, total_batches=1):
-    """Process a batch of companies in parallel."""
-    if num_processes is None:
-        # Determine number of processes based on CPU count and configured max
-        num_processes = min(os.cpu_count() or 4, CONFIG['MAX_PROCESSES'])
+def process_batch(companies_df: pd.DataFrame, output_folder: str,
+                 num_processes: int = None, batch_idx: int = 1, total_batches: int = 1,
+                 batch_start_times: list = None):
+    """Process a batch of companies in parallel.
     
-    batch_size = len(companies_df)
-    logging.info(f"Starting batch {batch_idx}/{total_batches} with {batch_size} companies using {num_processes} processes")
+    Args:
+        companies_df: DataFrame with company data
+        output_folder: Where to save the logos
+        num_processes: Number of parallel processes to use
+        batch_idx: Current batch index
+        total_batches: Total number of batches
+        batch_start_times: List to track batch timings for ETA calculation
         
-    try:
-        # Prepare arguments for each company
-        process_args = [
-            (row, output_folder, temp_folder, batch_idx, total_batches, i, batch_size)
-            for i, (_, row) in enumerate(companies_df.iterrows())
-        ]
+    Returns:
+        Tuple[int, int, pd.DataFrame]: (successful_count, total_count, results_df)
+    """
+    batch_start_time = time.time()
+    
+    if num_processes is None:
+        num_processes = min(os.cpu_count() - 1 or 1, CONFIG.get('MAX_PROCESSES', 8))
+    
+    # Prepare arguments for parallel processing
+    process_args = [(row, output_folder) for _, row in companies_df.iterrows()]
+
+    results = []
+    total = len(process_args)
+    success_count = 0
+    fail_count = 0
+
+    with Pool(num_processes, initializer=init_worker) as pool:
+        # Instead of using tqdm for batch progress, we'll use simple print statements
+        # to avoid conflicts with the main progress bar
+        print(f"  Processing batch {batch_idx}/{total_batches} ({total} companies)...")
         
-        # Run in parallel with timing
-        start_time = time.monotonic()
-        logging.info(f"Batch {batch_idx}/{total_batches}: Processing started at {time.strftime('%Y-%m-%d %H:%M:%S')}")
-        
-        # Launch worker pool
-        with Pool(processes=num_processes, initializer=init_worker) as pool:
-            try:
-                results = pool.map(process_company_wrapper, process_args)
-            except KeyboardInterrupt:
-                pool.terminate()
-                logging.info(f"Batch {batch_idx}/{total_batches}: Processing interrupted by user")
-                raise
-                
-        duration = time.monotonic() - start_time
-        
-        # Count successes and analyze sources
-        successful = sum(1 for r in results if r[0])
-        total = len(results)
-        success_rate = (successful / total) * 100 if total > 0 else 0
-        
-        # Create enriched dataframe
-        enriched_df = enrich_batch_results(companies_df, results)
-        
-        # Get source breakdowns
-        sources = {}
-        for r in results:
-            source = r[1]
-            if source in sources:
-                sources[source] += 1
+        for result in pool.imap_unordered(process_company_wrapper, process_args):
+            results.append(result)
+            _, success, _ = result
+            if success:
+                success_count += 1
             else:
-                sources[source] = 1
+                fail_count += 1
+              # Print periodic progress updates (every 25 companies or at the end)
+            completed = success_count + fail_count
+            if completed % 25 == 0 or completed == total:
+                rate = 100 * (success_count / completed) if completed > 0 else 0
+                status_emoji = "🟩" if rate >= 90 else "🟨" if rate >= 50 else "🟥"
+                print(f"    {status_emoji} Progress: {completed}/{total} ({rate:.1f}% success)")
         
-        # Log detailed batch completion info
-        logging.info(f"Batch {batch_idx}/{total_batches}: Completed in {duration:.2f}s")
-        logging.info(f"Batch {batch_idx}/{total_batches}: Success rate: {successful}/{total} ({success_rate:.1f}%)")
-        logging.info(f"Batch {batch_idx}/{total_batches}: Sources breakdown: {sources}")
+        batch_end_time = time.time()
+        batch_duration = batch_end_time - batch_start_time
+          # Record batch timing for ETA calculation
+        if batch_start_times is not None:
+            batch_start_times.append(batch_duration)
         
-        return successful, total, enriched_df
-    except Exception as e:
-        logging.error(f"Error in batch {batch_idx}/{total_batches} processing: {str(e)}")
-        return 0, len(companies_df), pd.DataFrame()
+        final_rate = 100 * (success_count / total) if total > 0 else 0
+        status_emoji = "🟩" if final_rate >= 90 else "🟨" if final_rate >= 50 else "🟥"
+        
+        # Calculate and display ETA if we have multiple batches
+        eta_message = ""
+        if total_batches > 1 and batch_start_times and len(batch_start_times) > 0:
+            batches_remaining = total_batches - batch_idx
+            if batches_remaining > 0:
+                # Calculate average batch time
+                avg_batch_time = sum(batch_start_times) / len(batch_start_times)
+                # Inflate ETA for first 1-2 batches
+                if len(batch_start_times) == 1:
+                    eta_seconds = avg_batch_time * batches_remaining * 1.5
+                elif len(batch_start_times) == 2:
+                    eta_seconds = avg_batch_time * batches_remaining * 1.2
+                else:
+                    eta_seconds = avg_batch_time * batches_remaining
+                eta_message = f" | ETA: {_format_duration(eta_seconds)}"
+        
+        print(f"  {status_emoji} Batch {batch_idx} completed: {success_count}/{total} logos ({final_rate:.1f}% success){eta_message}")
+
+    results_df = pd.DataFrame(
+        [(id, success, source) for id, success, source in results],
+        columns=['ID', 'LogoGenerated', 'LogoSource']
+    )
+
+    return success_count, total, results_df
+
+
+def _format_duration(seconds: float) -> str:
+    """Format time duration in a human-readable way."""
+    if seconds < 0:
+        return "0s"
+    
+    hours, remainder = divmod(int(seconds), 3600)
+    minutes, seconds_remaining = divmod(remainder, 60)
+    
+    if hours > 0:
+        return f"{hours}h {minutes}m"
+    elif minutes > 0:
+        return f"{minutes}m {seconds_remaining}s"
+    else:
+        return f"{int(seconds)}s"

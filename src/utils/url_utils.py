@@ -9,7 +9,6 @@ Functions:
 These utilities are used throughout the logo scraping pipeline to ensure only valid, clean domains are used for logo retrieval.
 """
 
-import logging
 import re
 from urllib.parse import urlparse
 
@@ -22,6 +21,7 @@ def clean_domain(domain):
     - Remove anything after '@'
     - Remove leading/trailing dots and hyphens
     - Strip spaces
+    - Validate minimum domain requirements
     """
     if not domain:
         return None
@@ -45,7 +45,20 @@ def clean_domain(domain):
     # Remove leading/trailing dots and hyphens and spaces
     domain = domain.strip(' .-')
 
-    return domain if domain else None
+    # Basic domain validation - must be at least 4 characters and contain a dot
+    if not domain or len(domain) < 4 or '.' not in domain:
+        return None
+    
+    # Additional validation - ensure it's not just a single character or obvious invalid domain
+    parts = domain.split('.')
+    if len(parts) < 2 or any(len(part) == 0 for part in parts):
+        return None
+    
+    # Check for valid top-level domain (at least 2 characters)
+    if len(parts[-1]) < 2:
+        return None
+
+    return domain
 
 
 def get_domain_from_url(url_or_domain):

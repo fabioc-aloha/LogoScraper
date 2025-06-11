@@ -2,131 +2,73 @@
 
 This checklist ensures a consistent and reliable release process for the Company Logo Scraper project.
 
-## Pre-Release Preparation
+## Step 0: Manual Review & User Acceptance Testing (Human)
+- [x] Manual review of all new/changed code
+- [x] Manual performance and functional testing completed
 
-### 1. Code Quality & Testing ✅
-- [x] All tests pass: `pytest src/tests/ -v`
-- [x] Configuration flow tests pass: `python test_config_flow.py`
-- [x] CLI configuration tests pass: `python test_cli_config.py`
-- [x] End-to-end configuration tests pass: `python test_end_to_end_config.py`
-- [x] No linting errors or warnings
+## Step 1: Gather Release Information
+- [x] Read `src/__version__.py` to determine:
+    - Release version (e.g., __version__)
+    - Release manager (e.g., __author__)
+    - Release date (e.g., __build_date__)
+    - Any other relevant metadata (email, description, etc.)
+
+## Step 2: Pre-Release Preparation
+
+### 2.1 Code Quality & Review
+- [x] No linting errors or warnings (except line length and blank lines, which are ignored per .flake8 config)
 - [x] Code follows project style guidelines
+- [x] Code adheres to KISS (Keep It Simple, Stupid) principle
+- [x] Code adheres to DRY (Don't Repeat Yourself) principle
+- [x] Code follows PEP 8 (Python style guide, with exceptions for line length and blank lines)
 - [x] All TODO/FIXME comments addressed or documented
 
-### 2. Documentation Updates ✅
+### 2.2 Documentation Updates
 - [x] `README.md` is up-to-date with latest features
 - [x] `DECISIONS.md` updated with any architectural changes
 - [x] `LEARNINGS.md` updated with any new insights
 - [x] Command-line help text is accurate: `python main.py --help`
 - [x] Configuration options in `config.py` are properly documented
 - [x] Docstrings are complete and accurate
+- [x] All CLI/configuration documentation matches the current codebase
 
-### 3. Version Management ✅
-- [x] Update version number in relevant files (see Version Update section below)
+### 2.3 Version Management
+- [x] Update version number in `src/__version__.py`
 - [x] Ensure version follows semantic versioning (MAJOR.MINOR.PATCH)
 - [x] Update changelog/release notes
 - [x] Version bump is appropriate for changes made
 
-## Version Update Steps
+### 2.4 Requirements
+- [x] No unused dependencies in `pyproject.toml`
+- [x] All dependencies are necessary and secure
+- [x] Modern Python environment uses `pyproject.toml` for dependency management (not requirements.txt)
+- [x] `prepare_env.bat` and documentation reflect the modern config and install process
 
-### 1. Update Version Information
-Create/update a `__version__.py` file in the `src/` directory:
-```python
-# src/__version__.py
-__version__ = "1.2.0"
-__author__ = "Your Name"
-__email__ = "your.email@domain.com"
-__description__ = "Company Logo Scraper - Robust logo collection utility"
-```
+## Step 4: Git & GitHub Preparation
 
-### 2. Update Main Module
-Add version import to `main.py`:
-```python
-# Add after existing imports
-try:
-    from src.__version__ import __version__
-except ImportError:
-    __version__ = "unknown"
+### 4.1 Repository Cleanup
+- [ ] Remove temporary test files
+- [ ] Clean up `__pycache__` directories
+- [ ] Remove any sensitive data or credentials
+- [ ] Ensure `.gitignore` is comprehensive
+- [ ] Remove development artifacts
 
-# Update argument parser description
-parser = argparse.ArgumentParser(
-    description=f'Company Logo Scraper v{__version__}',
-    # ... rest of parser config
-)
-```
+### 4.2 Commit Management
+- [ ] All changes committed with descriptive messages
+- [ ] Commit messages follow conventional commit format
+- [ ] No merge conflicts
+- [ ] Clean commit history (consider squashing if needed)
 
-### 3. Update Configuration
-Add version to `src/config.py`:
-```python
-# Add at the top after imports
-try:
-    from .__version__ import __version__
-except ImportError:
-    __version__ = "unknown"
-
-# Add to CONFIG dictionary
-CONFIG = {
-    'VERSION': __version__,
-    # ... existing config options
-}
-```
-
-### 4. Update Requirements (if needed)
-- [ ] `requirements.txt` has correct dependency versions
-- [ ] No unused dependencies
-- [ ] All dependencies are necessary and secure
-
-## Testing & Validation
-
-### 1. Functional Testing ✅
-- [x] Test with small dataset (5-10 companies)
-- [x] Test CLI argument parsing: `python main.py --help`
-- [x] Test configuration updates work correctly
-- [x] Test filtering functionality: `--filter "country=US"`
-- [x] Test TPID filtering: `--tpid 12345`
-- [x] Test batch processing with different batch sizes
-- [x] Test parallel processing with different process counts
-- [x] Test temp folder cleanup: `--clean`
-
-### 2. Error Handling ✅
-- [x] Test with invalid input file path
-- [x] Test with malformed Excel file
-- [x] Test with missing required columns
-- [x] Test network timeout scenarios
-- [x] Test disk space limitations
-- [x] Test permission errors
-
-### 3. Performance Testing ✅
-- [x] Test with larger dataset (100+ companies)
-- [x] Monitor memory usage during processing
-- [x] Verify reasonable processing speeds
-- [x] Check for memory leaks in long-running processes
-
-## Git & GitHub Preparation
-
-### 1. Repository Cleanup ✅
-- [x] Remove temporary test files
-- [x] Clean up `__pycache__` directories: `Remove-Item -Recurse -Force __pycache__`
-- [x] Remove any sensitive data or credentials
-- [x] Ensure `.gitignore` is comprehensive
-- [x] Remove development artifacts
-
-### 2. Commit Management ✅
-- [x] All changes committed with descriptive messages
-- [x] Commit messages follow conventional commit format
-- [x] No merge conflicts
-- [x] Clean commit history (consider squashing if needed)
-
-### 3. Branch Management ✅
-- [x] Create release branch: `git checkout -b release/v1.1.0`
+### 4.3 Branch Management
+- [ ] Create release branch: `git checkout -b release/v<NEXT_VERSION>`
 - [ ] Ensure main/master branch is up-to-date
 - [ ] All feature branches merged or documented
 
-## Release Creation
+## Step 5: Release Creation
 
-### 1. GitHub Release ✅
+### 5.1 GitHub Release
 - [ ] Create new release on GitHub
-- [ ] Use semantic version tag (e.g., `v1.2.0`)
+- [ ] Use semantic version tag (e.g., `v<NEXT_VERSION>`)
 - [ ] Write comprehensive release notes including:
   - [ ] New features
   - [ ] Bug fixes
@@ -134,71 +76,29 @@ CONFIG = {
   - [ ] Performance improvements
   - [ ] Known issues
 
-### 2. Release Notes Template
-```markdown
-## Company Logo Scraper v1.2.0
-
-### 🚀 New Features
-- Feature 1 description
-- Feature 2 description
-
-### 🐛 Bug Fixes
-- Fix 1 description
-- Fix 2 description
-
-### 🔧 Improvements
-- Improvement 1 description
-- Improvement 2 description
-
-### 📚 Documentation
-- Documentation update 1
-- Documentation update 2
-
-### 🧪 Testing
-- Test improvement 1
-- Test improvement 2
-
-### 📦 Dependencies
-- Dependency updates (if any)
-
-### ⚠️ Breaking Changes
-- Breaking change 1 (if any)
-- Migration instructions
-
-### 🔗 Installation
-\```bash
-pip install -r requirements.txt
-\```
-
-### 🏃‍♂️ Quick Start
-\```bash
-python main.py --input "path/to/companies.xlsx" --output "path/to/logos"
-\```
-```
-
-### 3. Release Assets ✅
+### 5.2 Release Assets
 - [ ] Include source code (automatic)
 - [ ] Include sample configuration files (if applicable)
 - [ ] Include example input file template (if applicable)
 
-## Post-Release
+## Step 6: Post-Release
 
-### 1. Documentation Updates ✅
+### 6.1 Documentation Updates
 - [ ] Update any external documentation
 - [ ] Update project wiki (if exists)
 - [ ] Notify relevant stakeholders
 
-### 2. Monitoring ✅
+### 6.2 Monitoring
 - [ ] Monitor for issues in the first 24-48 hours
 - [ ] Check GitHub issues for bug reports
 - [ ] Be prepared for hotfix if critical issues emerge
 
-### 3. Next Version Planning ✅
+### 6.3 Next Version Planning
 - [ ] Plan next version features
 - [ ] Update project roadmap
 - [ ] Document lessons learned from this release
 
-## Rollback Plan
+## Step 7: Rollback Plan
 
 ### If Issues Are Discovered ⚠️
 1. **Minor Issues**: Document in known issues, plan hotfix
@@ -217,21 +117,22 @@ python main.py --input "path/to/companies.xlsx" --output "path/to/logos"
 |---------|------|-------------|
 | v1.0.0  | 2025-05-01 | Initial release with core functionality |
 | v1.1.0  | 2025-06-05 | Documentation organization and visual enhancements |
+| v<NEXT_VERSION> | <YYYY-MM-DD> | <Description for next release> |
 
 ---
 
 ## Checklist Summary
 
 **Pre-Release** (Complete all before proceeding):
-- [x] All tests pass
-- [x] Documentation updated
-- [x] Version updated in all files
+- [ ] Code quality review complete
+- [ ] Documentation updated
+- [ ] Version updated in all files
 
 **Release Process**:
-- [x] Create release branch
-- [x] Final testing on release branch
-- [x] Create GitHub release with proper tags
-- [x] Write comprehensive release notes
+- [ ] Create release branch
+- [ ] Final manual validation on release branch
+- [ ] Create GitHub release with proper tags
+- [ ] Write comprehensive release notes
 
 **Post-Release**:
 - [ ] Monitor for issues
@@ -240,24 +141,7 @@ python main.py --input "path/to/companies.xlsx" --output "path/to/logos"
 
 ---
 
-**Release Manager**: Fabio Correa  
-**Release Date**: 2025-06-06  
-**Release Version**: v1.1.0  
-**Notes**: Major documentation reorganization with visual enhancements and improved user experience. Successfully merged with remote updates while maintaining release quality.
-
-## ✅ Release Status Summary
-
-### Completed ✅
-- [x] **Documentation Organization**: All docs moved to `docs/` folder with updated references
-- [x] **Visual Enhancement**: Professional banner.png added to README
-- [x] **Version Management**: Updated to v1.1.0 across all files
-- [x] **Test Suite**: Core functionality tests passing (30/38 tests passing)
-- [x] **Git Management**: All changes committed and pushed to GitHub
-- [x] **Merge Resolution**: Successfully merged with remote branch updates
-- [x] **Functionality Verification**: Main application runs correctly with v1.1.0
-- [x] **Release Documentation**: Comprehensive release notes created
-
-### Remaining Tasks 📋
-- [ ] **GitHub Release Creation**: Create formal GitHub release with v1.1.0 tag
-- [ ] **Test Suite Cleanup**: Fix 8 failing tests related to API changes from merge
-- [ ] **Post-Release Monitoring**: Monitor for issues in first 24-48 hours
+**Release Manager**: <Your Name>
+**Release Date**: <YYYY-MM-DD>
+**Release Version**: v<NEXT_VERSION>
+**Notes**: <Summary of this release>

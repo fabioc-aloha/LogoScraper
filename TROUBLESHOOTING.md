@@ -113,10 +113,10 @@ python main.py --clean
 **Problem:** `KeyError` or "Column not found" errors
 
 **Solution:** Ensure your Excel file has these columns:
-- `tpid` (required) - Unique company identifier
-- `crmaccountname` (required) - Company name
-- `websiteurl` (optional) - Website URL
-- `country` (optional) - Country code for filtering
+- `ID` (required) - Unique company identifier
+- `CompanyName` (required) - Company name
+- `WebsiteURL` (optional) - Website URL
+- `Country` (optional) - Country code for filtering
 
 ### Empty Results
 **Problem:** No logos downloaded despite valid input
@@ -198,7 +198,7 @@ Before reporting an issue, try:
 
 - [ ] Python 3.7+ installed and working
 - [ ] All dependencies installed successfully  
-- [ ] Input Excel file has required columns (`tpid`, `crmaccountname`)
+- [ ] Input Excel file has required columns (`ID`, `CompanyName`)
 - [ ] Input file path is correct and accessible
 - [ ] Output directory exists and is writable
 - [ ] Internet connection is working

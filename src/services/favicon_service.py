@@ -11,7 +11,6 @@ This service provides a secondary online logo source in the scraping pipeline.
 """
 import logging
 from src.utils.session_manager import SessionManager
-from src.config import CONFIG
 
 class FaviconService:
     """Service class for fetching favicons from the website or DuckDuckGo as fallback."""

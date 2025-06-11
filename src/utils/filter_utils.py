@@ -5,7 +5,6 @@ configuration settings. Simplified to focus on basic filtering functionality.
 """
 
 import logging
-import pandas as pd
 from src.config import CONFIG
 
 def apply_filters(df):

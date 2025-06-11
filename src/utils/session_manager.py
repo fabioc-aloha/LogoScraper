@@ -4,7 +4,6 @@ This module provides consistent HTTP session management across services.
 """
 
 import requests
-import os
 import time
 import logging
 from src.config import CONFIG
