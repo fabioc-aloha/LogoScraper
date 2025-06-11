@@ -91,6 +91,16 @@ python logo_scraper.py --input "input/Companies.xlsx" --output "logos" --batch-s
 - `LEARNINGS.md` for project learnings and notes
 - `config.py` for configuration options
 
+## 📊 Codebase & Processing Flow
+
+For a visual overview and detailed process pipeline, see [`flow.md`](./flow.md). This document includes:
+- High-level architecture diagrams
+- Step-by-step processing flow
+- Service and error handling diagrams
+- Key supporting modules and data flow
+
+This is recommended for new contributors and anyone seeking to understand the end-to-end logic of the Company Logo Scraper.
+
 ---
 >>>>>>> origin/master
 

@@ -23,7 +23,7 @@ if ($Help) {
     Write-Host "  .\release.ps1 -Version 1.2.0                # Update version to 1.2.0"
     Write-Host "  .\release.ps1 -RunTests                     # Run all tests"
     Write-Host "  .\release.ps1 -CleanUp                      # Clean up temp files"
-    Write-Host "  .\release.ps1 -Version 1.2.0 -RunTests     # Update version and run tests"
+    Write-Host "  .\release.ps1 -Version 1.2.0 -RunTests      # Update version and run tests"
     Write-Host "  .\release.ps1 -Help                         # Show this help"
     Write-Host ""
     Write-Host "Examples:"
@@ -56,7 +56,7 @@ function Update-Version {
 }
 
 # Function to run tests
-function Run-Tests {
+function Invoke-Tests {
     Write-Host "🧪 Running tests..." -ForegroundColor Yellow
     
     # Run pytest
@@ -102,7 +102,7 @@ function Run-Tests {
 }
 
 # Function to clean up temporary files
-function Clean-Up {
+function Invoke-Cleanup {
     Write-Host "🧹 Cleaning up temporary files..." -ForegroundColor Yellow
     
     # Remove __pycache__ directories
@@ -134,7 +134,7 @@ function Clean-Up {
 }
 
 # Function to check git status
-function Check-GitStatus {
+function Test-GitStatus {
     Write-Host "🔍 Checking git status..." -ForegroundColor Yellow
     
     $gitStatus = git status --porcelain
@@ -162,7 +162,7 @@ try {
     
     # Run tests if specified
     if ($RunTests) {
-        $testsPassed = Run-Tests
+        $testsPassed = Invoke-Tests
         if (-not $testsPassed) {
             Write-Host "❌ Tests failed, stopping release process" -ForegroundColor Red
             exit 1
@@ -171,11 +171,11 @@ try {
     
     # Clean up if specified
     if ($CleanUp) {
-        Clean-Up
+        Invoke-Cleanup
     }
     
     # Check git status
-    Check-GitStatus
+    Test-GitStatus
     
     # Show next steps
     Write-Host ""
