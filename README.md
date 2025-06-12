@@ -1,6 +1,6 @@
 ![Company Logo Scraper Banner](banner.png)
 
-# Company Logo Scraper v1.3.0
+# Company Logo Scraper v1.3.1
 
 A modern Python tool for automating the download and standardization of company logos at scale. Perfect for CRM systems, business directories, and any workflow needing consistent branding assets.
 

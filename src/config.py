@@ -43,7 +43,7 @@ CONFIG = {
     'MIN_SOURCE_SIZE': 24,  # Minimum source image dimension in pixels
                            # At least one dimension (width or height) must be >= this value.
                            # Filters out very small images that would produce poor quality results.
-    'BATCH_SIZE': 150,      # Number of companies to process in each parallel batch
+    'BATCH_SIZE': 300,      # Number of companies to process in each parallel batch
                            # For systems with 16GB RAM, 100-500 is optimal. Larger values may cause memory pressure.
     'OUTPUT_FOLDER': os.path.join(BASE_DATA_DIR, 'logo'),  # Directory where processed logos are saved
                                                          # Will be created if it doesn't exist
@@ -89,7 +89,7 @@ CONFIG = {
                                                               # Delete to restart processing from scratch
 
     # Processing Defaults
-    'MAX_PROCESSES': 8  # Maximum parallel processes for company processing
+    'MAX_PROCESSES': 4  # Maximum parallel processes for company processing
                         # Recommended: CPU cores - 1 for typical systems
                         # Lower if experiencing memory pressure
                         # Increase for CPU-bound workloads on systems with many cores (12+)
